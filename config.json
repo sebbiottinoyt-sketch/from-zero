@@ -1,0 +1,48 @@
+{
+  "instagram": {
+    "username": "fromzero",
+    "api_host": "https://graph.instagram.com",
+    "api_version": "v26.0"
+  },
+  "openai": {
+    "text_model": "gpt-6-luna",
+    "vision_model": "gpt-6-luna",
+    "image_model": "gpt-image-2.5-sunburst",
+    "image_quality": "medium",
+    "image_size": "1024x1536"
+  },
+  "auto_publish": false,
+  "ai_label": true,
+  "money": {
+    "per_follower": 10,
+    "per_like": 1,
+    "followers_at_start": 0
+  },
+  "rewards": {
+    "top_n": 3,
+    "points_per_friend_tagged": 2,
+    "max_friends_counted": 10,
+    "points_for_vote": 1,
+    "points_per_comment_like": 1,
+    "max_comment_like_points": 10,
+    "blocked_users": [],
+    "blocked_words": ["porn", "sex", "nazi", "kill"]
+  },
+  "episode": {
+    "story_scenes": 5,
+    "target_seconds": 45
+  },
+  "character_refs": [
+    "episodes/ep01/04-hand.png",
+    "episodes/ep01/03-sunset.png",
+    "episodes/ep01/01-station-night.png"
+  ],
+  "voice": {
+    "tts": "kokoro",
+    "kokoro_voice": "am_fenrir",
+    "kokoro_speed": 1.08,
+    "voice_fx": "rubberband=pitch=1.13:formant=shifted",
+    "voice_delay": 0.2,
+    "scene_pad": 0.9
+  }
+}

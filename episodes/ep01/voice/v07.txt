@@ -1,0 +1,1 @@
+["So, what should I do next? Comment fix, or wash.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]

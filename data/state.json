@@ -1,0 +1,18 @@
+{
+  "episodes": [
+    {
+      "episode": 1,
+      "folder": "ep01",
+      "day_label": "DAY 1",
+      "summary": "Day 1: homeless and broke, he sleeps on a train platform with only a backpack (blanket, broken phone, an old photo of him with a smiling girl). He promises to become the richest man in the world. He earns his first dollars washing windshields at red lights, then discovers he is great at repairing broken phones and sells his first one for $20. Net worth at the end: $28.",
+      "vote_options": ["FIX", "WASH"],
+      "final_net_worth": 28,
+      "media_id": null,
+      "permalink": null,
+      "published_at": null,
+      "followers_at_publish": null
+    }
+  ],
+  "last_followers": null,
+  "featured": {}
+}

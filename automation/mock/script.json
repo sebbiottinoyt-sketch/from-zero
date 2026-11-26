@@ -1,0 +1,15 @@
+{
+ "title": "The Phone Doctor",
+ "day_label": "DAY 2",
+ "summary": "The audience voted FIX. He spends part of the money on a cheap repair kit, sets up a tiny phone-repair corner on a bench, fixes three phones and earns his first real customers. A woman offers him a spot in her shop if he can fix a tablet nobody else could.",
+ "scenes": [
+  {"image_prompt": "Morning at the train station, he reads comments on a cracked phone screen with a huge smile, golden morning light", "caption": "You chose FIX.", "narration": "You chose fix. And you sent me five hundred and eighty two dollars. I couldn't sleep.", "money": [], "camera": "push_in"},
+  {"image_prompt": "He buys a small repair toolkit at a street market stall, holding it proudly", "caption": "First investment.", "narration": "First, a real repair kit. Forty dollars. My first investment.", "money": [{"amount": -40, "label": "TOOL KIT", "at": 0.5}], "camera": "pull_out"},
+  {"image_prompt": "He sits at a park bench with a handwritten cardboard sign, repairing a phone, people waiting", "caption": "Phone doctor is open.", "narration": "A cardboard sign, a bench, and suddenly I'm the phone doctor of the park.", "money": [{"amount": 15, "label": "SCREEN FIX", "at": 0.5}, {"amount": 15, "label": "BATTERY", "at": 0.8}], "camera": "push_in"},
+  {"image_prompt": "An old lady hugs her repaired phone happily while he smiles", "caption": "Best customer ever.", "narration": "She cried when her grandson's photos came back. She paid me double.", "money": [{"amount": 30, "label": "TIP", "at": 0.6}], "camera": "pull_out"},
+  {"image_prompt": "A stylish shop owner hands him a broken tablet in front of a small electronics shop at sunset", "caption": "A real shop?", "narration": "Then a shop owner said: fix this tablet, and you get a spot in my shop.", "money": [], "camera": "push_in"}
+ ],
+ "vote": {"title": "Take the deal?", "options": ["SHOP", "STREET"], "narration": "Do I join her shop, or stay free on the street? Comment shop, or street."},
+ "supporters_narration": "Huge thanks to my top supporters. Want to be here next time? Tag your friends in the comments.",
+ "instagram_caption": "Day 2. Net worth climbing 📈\n\nEvery follower = $10 💵 Every like = $1\nShop or street? Comment SHOP or STREET 👇\nTag your friends: the top 3 supporters appear in the next episode!\n\n#fromzero #aistory #rags2riches #series"
+}

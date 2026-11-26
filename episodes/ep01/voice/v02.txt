@@ -1,0 +1,1 @@
+["Everything I own fits in this bag. A blanket. A broken phone. And a photo I can't stop looking at.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]

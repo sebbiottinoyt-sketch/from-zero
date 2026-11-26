@@ -1,0 +1,782 @@
+{
+  "episode": 1,
+  "day_label": "DAY 1",
+  "tts": "kokoro",
+  "kokoro_voice": "am_fenrir",
+  "kokoro_speed": 1.08,
+  "voice_fx": "rubberband=pitch=1.13:formant=shifted",
+  "voice_delay": 0.2,
+  "scene_pad": 0.9,
+  "voice": "en-US-AndrewNeural",
+  "voice_rate": "-5%",
+  "net_worth": 0,
+  "scenes": [
+    {
+      "image": "01-station-night.png",
+      "caption": "Day 1. No home. No money.",
+      "narration": "Day one. No home. No money. Nobody waiting for me. Tonight, this platform is my bed.",
+      "camera": {
+        "zoom": [
+          1.04,
+          1.13
+        ],
+        "focus": [
+          0.47,
+          0.5
+        ]
+      },
+      "anim": {
+        "blink": [
+          [
+            376,
+            726,
+            27,
+            18
+          ],
+          [
+            455,
+            709,
+            21,
+            17
+          ]
+        ],
+        "blink_times": [
+          1.3,
+          3.9,
+          5.9
+        ],
+        "movers": [
+          {
+            "c": [
+              450,
+              1010
+            ],
+            "r": [
+              300,
+              330
+            ],
+            "dy": -3.5,
+            "period": 3.6
+          },
+          {
+            "c": [
+              420,
+              700
+            ],
+            "r": [
+              160,
+              180
+            ],
+            "pivot": [
+              430,
+              880
+            ],
+            "rot": 1.0,
+            "dy": -2.5,
+            "period": 3.6
+          },
+          {
+            "c": [
+              420,
+              700
+            ],
+            "r": [
+              160,
+              180
+            ],
+            "dx": 2,
+            "period": 6.5,
+            "phase": 0.3
+          }
+        ],
+        "fx": [
+          "rain"
+        ],
+        "glow": [
+          [
+            470,
+            180,
+            260,
+            [
+              255,
+              150,
+              40
+            ],
+            0.35,
+            1.7
+          ],
+          [
+            700,
+            520,
+            110,
+            [
+              170,
+              220,
+              255
+            ],
+            0.35,
+            2.3
+          ]
+        ]
+      }
+    },
+    {
+      "image": "02-backpack.png",
+      "caption": "Everything I own fits in this bag.",
+      "narration": "Everything I own fits in this bag. A blanket. A broken phone. And a photo I can't stop looking at.",
+      "camera": {
+        "zoom": [
+          1.16,
+          1.05
+        ],
+        "focus": [
+          0.55,
+          0.6
+        ]
+      },
+      "anim": {
+        "movers": [
+          {
+            "c": [
+              380,
+              540
+            ],
+            "r": [
+              200,
+              160
+            ],
+            "dx": 3,
+            "dy": -6,
+            "period": 2.6
+          },
+          {
+            "c": [
+              800,
+              1280
+            ],
+            "r": [
+              180,
+              210
+            ],
+            "dx": -3,
+            "dy": 4,
+            "period": 2.6,
+            "phase": 0.5
+          },
+          {
+            "c": [
+              560,
+              1040
+            ],
+            "r": [
+              210,
+              180
+            ],
+            "dy": -4,
+            "period": 4.4
+          },
+          {
+            "c": [
+              150,
+              200
+            ],
+            "r": [
+              280,
+              320
+            ],
+            "dx": 2,
+            "dy": 4,
+            "period": 3.6
+          }
+        ],
+        "fx": [
+          "dust"
+        ],
+        "glow": [
+          [
+            560,
+            200,
+            160,
+            [
+              255,
+              190,
+              90
+            ],
+            0.3,
+            2.1
+          ]
+        ]
+      }
+    },
+    {
+      "image": "03-sunset.png",
+      "caption": "One day, this city will know my name.",
+      "narration": "But I made a promise. I'm going to become the richest man in the world. Starting from zero.",
+      "camera": {
+        "zoom": [
+          1.05,
+          1.15
+        ],
+        "focus": [
+          0.45,
+          0.42
+        ],
+        "pan": [
+          0.04,
+          0
+        ]
+      },
+      "anim": {
+        "blink": [
+          [
+            406,
+            277,
+            25,
+            19,
+            [
+              186,
+              77,
+              45
+            ]
+          ]
+        ],
+        "blink_times": [
+          1.6,
+          4.6
+        ],
+        "movers": [
+          {
+            "c": [
+              380,
+              280
+            ],
+            "r": [
+              220,
+              210
+            ],
+            "pivot": [
+              350,
+              440
+            ],
+            "rot": 1.2,
+            "period": 5.5
+          },
+          {
+            "c": [
+              480,
+              170
+            ],
+            "r": [
+              120,
+              90
+            ],
+            "dx": 4,
+            "dy": -1.5,
+            "period": 1.6
+          },
+          {
+            "c": [
+              170,
+              330
+            ],
+            "r": [
+              90,
+              90
+            ],
+            "dx": 3,
+            "period": 1.8,
+            "phase": 0.4
+          },
+          {
+            "c": [
+              300,
+              790
+            ],
+            "r": [
+              300,
+              360
+            ],
+            "dy": -3.5,
+            "period": 3.8
+          }
+        ],
+        "fx": [
+          "embers"
+        ],
+        "glow": [
+          [
+            765,
+            515,
+            230,
+            [
+              255,
+              170,
+              60
+            ],
+            0.55,
+            2.6
+          ]
+        ]
+      }
+    },
+    {
+      "image": "04-hand.png",
+      "caption": "Every follower = $10.\nEvery like = $1.",
+      "narration": "And you decide how fast I get there. Every follower is ten dollars. Every like is one dollar. Help me get off the street.",
+      "camera": {
+        "zoom": [
+          1.13,
+          1.04
+        ],
+        "focus": [
+          0.5,
+          0.45
+        ]
+      },
+      "anim": {
+        "blink": [
+          [
+            445,
+            407,
+            58,
+            28
+          ],
+          [
+            618,
+            371,
+            38,
+            30
+          ]
+        ],
+        "blink_times": [
+          1.5,
+          4.7,
+          7.6
+        ],
+        "movers": [
+          {
+            "c": [
+              380,
+              1160
+            ],
+            "r": [
+              310,
+              250
+            ],
+            "pivot": [
+              230,
+              1430
+            ],
+            "rot": 2.6,
+            "period": 1.5
+          },
+          {
+            "c": [
+              330,
+              1060
+            ],
+            "r": [
+              210,
+              150
+            ],
+            "dy": 5,
+            "period": 1.5,
+            "phase": 0.15
+          },
+          {
+            "c": [
+              520,
+              430
+            ],
+            "r": [
+              270,
+              290
+            ],
+            "pivot": [
+              520,
+              760
+            ],
+            "rot": 1.3,
+            "dx": 2,
+            "period": 4.0
+          },
+          {
+            "c": [
+              500,
+              1250
+            ],
+            "r": [
+              460,
+              460
+            ],
+            "dy": -3,
+            "period": 3.6
+          }
+        ],
+        "fx": [
+          "dust"
+        ]
+      }
+    },
+    {
+      "image": "05-car-wash.png",
+      "caption": "Red light = paycheck.",
+      "narration": "So I started. Every red light is a chance. One windshield, one dollar.",
+      "camera": {
+        "zoom": [
+          1.04,
+          1.12
+        ],
+        "focus": [
+          0.55,
+          0.5
+        ]
+      },
+      "anim": {
+        "blink": [
+          [
+            566,
+            378,
+            18,
+            20
+          ],
+          [
+            481,
+            412,
+            31,
+            18
+          ]
+        ],
+        "blink_times": [
+          0.8,
+          3.7
+        ],
+        "movers": [
+          {
+            "c": [
+              750,
+              880
+            ],
+            "r": [
+              270,
+              170
+            ],
+            "dx": 10,
+            "dy": 6,
+            "period": 0.9,
+            "wave": "circle"
+          },
+          {
+            "c": [
+              320,
+              780
+            ],
+            "r": [
+              220,
+              200
+            ],
+            "dx": 3,
+            "period": 0.9
+          },
+          {
+            "c": [
+              380,
+              1380
+            ],
+            "r": [
+              170,
+              180
+            ],
+            "pivot": [
+              430,
+              1110
+            ],
+            "rot": 2.5,
+            "period": 1.8
+          },
+          {
+            "c": [
+              470,
+              330
+            ],
+            "r": [
+              210,
+              220
+            ],
+            "pivot": [
+              450,
+              560
+            ],
+            "rot": 1.0,
+            "dy": 2,
+            "period": 1.8
+          }
+        ],
+        "fx": [
+          "bubbles"
+        ],
+        "fx_point": [
+          790,
+          880
+        ],
+        "glow": [
+          [
+            802,
+            80,
+            90,
+            [
+              255,
+              40,
+              30
+            ],
+            0.6,
+            1.2
+          ]
+        ]
+      },
+      "money": [
+        {
+          "t": 0.6,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 1.1,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 1.6,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 2.1,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 2.6,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 3.1,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 3.6,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        },
+        {
+          "t": 4.1,
+          "amount": 1,
+          "from": [
+            800,
+            880
+          ]
+        }
+      ]
+    },
+    {
+      "image": "06-phone-repair.png",
+      "caption": "Then I found something I'm good at.",
+      "narration": "Then I found something I'm actually good at. Broken phones. People throw them away. I bring them back to life.",
+      "camera": {
+        "zoom": [
+          1.14,
+          1.05
+        ],
+        "focus": [
+          0.55,
+          0.48
+        ]
+      },
+      "anim": {
+        "movers": [
+          {
+            "c": [
+              400,
+              800
+            ],
+            "r": [
+              150,
+              120
+            ],
+            "pivot": [
+              575,
+              915
+            ],
+            "rot": 4,
+            "period": 0.7
+          },
+          {
+            "c": [
+              700,
+              960
+            ],
+            "r": [
+              170,
+              150
+            ],
+            "dx": -1,
+            "dy": 2,
+            "period": 2.0
+          },
+          {
+            "c": [
+              560,
+              430
+            ],
+            "r": [
+              260,
+              250
+            ],
+            "pivot": [
+              540,
+              660
+            ],
+            "rot": 0.8,
+            "dy": 2,
+            "period": 3.0
+          },
+          {
+            "c": [
+              400,
+              1000
+            ],
+            "r": [
+              400,
+              250
+            ],
+            "dy": -2,
+            "period": 3.6
+          }
+        ],
+        "fx": [
+          "sparks",
+          "dust"
+        ],
+        "fx_point": [
+          575,
+          915
+        ]
+      },
+      "money": [
+        {
+          "t": 5.4,
+          "amount": 20,
+          "from": [
+            680,
+            900
+          ],
+          "fly": 0.7,
+          "label": "PHONE SOLD"
+        }
+      ]
+    },
+    {
+      "image": "06-phone-repair.png",
+      "cta": {
+        "title": "What's next?",
+        "options": [
+          "FIX",
+          "WASH"
+        ]
+      },
+      "narration": "So, what should I do next? Comment fix, or wash.",
+      "duration": 4.5,
+      "darken": 0.35,
+      "camera": {
+        "zoom": [
+          1.05,
+          1.1
+        ],
+        "focus": [
+          0.55,
+          0.48
+        ]
+      },
+      "anim": {
+        "movers": [
+          {
+            "c": [
+              400,
+              800
+            ],
+            "r": [
+              150,
+              120
+            ],
+            "pivot": [
+              575,
+              915
+            ],
+            "rot": 4,
+            "period": 0.7
+          },
+          {
+            "c": [
+              560,
+              430
+            ],
+            "r": [
+              260,
+              250
+            ],
+            "pivot": [
+              540,
+              660
+            ],
+            "rot": 0.8,
+            "dy": 2,
+            "period": 3.0
+          },
+          {
+            "c": [
+              400,
+              1000
+            ],
+            "r": [
+              400,
+              250
+            ],
+            "dy": -2,
+            "period": 3.6
+          }
+        ],
+        "fx": [
+          "sparks"
+        ],
+        "fx_point": [
+          575,
+          915
+        ]
+      }
+    }
+  ],
+  "instagram_caption": "Day 1. Net worth: $28.\n\nEvery follower = $10 💵 Every like = $1\nYou decide how fast I get off the street.\n\nKeep washing cars or start fixing phones?\nComment FIX or WASH 👇 The most voted wins.\n\n#fromzero #aistory #rags2riches #series"
+}

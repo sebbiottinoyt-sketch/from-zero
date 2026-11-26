@@ -1,0 +1,7 @@
+pillow
+numpy
+opencv-python-headless
+requests
+soundfile
+kokoro-onnx
+edge-tts

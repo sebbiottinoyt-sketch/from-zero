@@ -1,0 +1,1 @@
+["Day one. No home. No money. Nobody waiting for me. Tonight, this platform is my bed.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
