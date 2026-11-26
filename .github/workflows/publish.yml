@@ -1,0 +1,38 @@
+name: Pubblica episodio
+
+# Da lanciare a mano dopo aver guardato il video in output/ (Actions -> Pubblica episodio -> Run workflow).
+on:
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: "Numero dell'episodio (vuoto = l'ultimo)"
+        required: false
+        default: ""
+
+concurrency:
+  group: from-zero
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      IG_TOKEN: ${{ secrets.IG_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Pubblica su Instagram
+        run: python automation/publish.py ${{ github.event.inputs.episode }}
+      - name: Salva lo stato
+        run: |
+          git config user.name "from-zero-bot"
+          git config user.email "from-zero-bot@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Episodio pubblicato [skip ci]"
+          git push
