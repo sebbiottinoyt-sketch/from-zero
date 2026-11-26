@@ -1,0 +1,80 @@
+name: Nuovo episodio (automatico)
+
+# Ogni giorno alle 16:00 UTC legge Instagram, scrive il nuovo episodio, crea immagini e video.
+# Se in config.json "auto_publish" è true lo pubblica anche; altrimenti aspetta il tuo OK
+# (workflow "Pubblica episodio").
+on:
+  schedule:
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: from-zero
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  episode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      IG_TOKEN: ${{ secrets.IG_TOKEN }}
+      KOKORO_DIR: ${{ github.workspace }}/kokoro
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installa librerie
+        run: pip install -r requirements.txt
+
+      - name: Recupera il modello della voce
+        uses: actions/cache@v4
+        with:
+          path: kokoro
+          key: kokoro-v1.0
+
+      - name: Scarica il modello della voce se manca
+        run: |
+          mkdir -p kokoro
+          [ -f kokoro/kokoro-v1.0.onnx ] || curl -sSL -o kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          [ -f kokoro/voices-v1.0.bin ] || curl -sSL -o kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
+      - name: Crea l'episodio
+        run: python automation/run_next.py make
+
+      - name: Salva il token Instagram rinnovato
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -f data/.new_token ]; then
+            if [ -n "$GH_TOKEN" ]; then gh secret set IG_TOKEN --repo "$GITHUB_REPOSITORY" < data/.new_token && echo "token salvato"; else echo "GH_PAT mancante: token non salvato"; fi
+            rm -f data/.new_token
+          fi
+
+      - name: Salva episodio e video nel repository
+        if: always()
+        run: |
+          git config user.name "from-zero-bot"
+          git config user.email "from-zero-bot@users.noreply.github.com"
+          git add episodes/ data/ output/
+          git diff --cached --quiet || git commit -m "Nuovo episodio [skip ci]"
+          git push
+
+      - name: Pubblica (solo se auto_publish è true)
+        run: python automation/run_next.py publish
+
+      - name: Salva lo stato dopo la pubblicazione
+        run: |
+          git add data/
+          git diff --cached --quiet || git commit -m "Episodio pubblicato [skip ci]"
+          git push
