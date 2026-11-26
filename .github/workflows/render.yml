@@ -1,0 +1,60 @@
+name: Monta episodi
+
+on:
+  push:
+    paths:
+      - "episodes/**"
+      - "assets/**"
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: "Cartella da rimontare (es. ep01). Vuoto = solo quelli nuovi"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installa librerie
+        run: pip install -r requirements.txt
+
+      - name: Recupera il modello della voce (Kokoro)
+        uses: actions/cache@v4
+        with:
+          path: kokoro
+          key: kokoro-v1.0
+
+      - name: Scarica il modello della voce se manca
+        run: |
+          mkdir -p kokoro
+          [ -f kokoro/kokoro-v1.0.onnx ] || curl -sSL -o kokoro/kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          [ -f kokoro/voices-v1.0.bin ] || curl -sSL -o kokoro/voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+
+      - name: Monta i video
+        run: |
+          if [ -n "${{ github.event.inputs.episode }}" ]; then
+            python render.py "episodes/${{ github.event.inputs.episode }}"
+          else
+            python render.py --all
+          fi
+
+      - name: Salva i video nel repository
+        run: |
+          git config user.name "from-zero-bot"
+          git config user.email "from-zero-bot@users.noreply.github.com"
+          git add output/ episodes/*/voice/
+          git diff --cached --quiet || git commit -m "Nuovi video [skip ci]"
+          git push
