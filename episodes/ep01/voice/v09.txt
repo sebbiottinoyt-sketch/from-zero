@@ -1,1 +1,1 @@
-["Every follower gives me ten dollars. Every like, one.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
+["And you decide every choice I make.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]

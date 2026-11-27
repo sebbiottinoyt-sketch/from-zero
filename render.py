@@ -191,6 +191,80 @@ def sfx_ding():
     return (a * 0.11).astype(np.float32)
 
 
+def sfx_hit():
+    """Colpo basso per i colpi di scena."""
+    n = int(SR * 1.6)
+    t = np.arange(n) / SR
+    f = 75 * np.exp(-t * 2.2) + 32
+    a = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 2.4)
+    rng = np.random.default_rng(5)
+    a += rng.standard_normal(n) * np.exp(-t * 18) * 0.25
+    return (a * 0.55).astype(np.float32)
+
+
+def sfx_riser(dur=1.4):
+    n = int(SR * dur)
+    t = np.arange(n) / SR
+    rng = np.random.default_rng(9)
+    noise = rng.standard_normal(n)
+    out = np.zeros(n)
+    acc = 0.0
+    for i in range(n):
+        k = 0.01 + 0.35 * (i / n) ** 2
+        acc += k * (noise[i] - acc)
+        out[i] = acc
+    tone = np.sin(2 * np.pi * np.cumsum(220 + 660 * (t / dur) ** 2) / SR) * 0.25
+    env = (t / dur) ** 2.2
+    return ((out * 0.8 + tone) * env * 0.12).astype(np.float32)
+
+
+def synth_music(total, voice_env=None, seed=1):
+    """Base musicale di tensione generata al volo (nessun copyright): bordone, battito e arpeggio minore."""
+    n = int(total * SR)
+    t = np.arange(n) / SR
+    bpm = 84
+    beat = 60 / bpm
+    chords = [[220.0, 261.63, 329.63, 440.0], [174.61, 220.0, 261.63, 349.23],
+              [146.83, 174.61, 220.0, 293.66], [164.81, 207.65, 246.94, 329.63]]
+    roots = [55.0, 43.65, 36.71, 41.2]
+    bar = 4 * beat
+    idx = ((t // (2 * bar)) % 4).astype(int)
+    root = np.array(roots)[idx]
+    phase = 2 * np.pi * np.cumsum(root) / SR
+    drone = (np.sin(phase) + 0.5 * np.sin(2 * phase + 0.3) + 0.25 * np.sin(3 * phase)) * \
+        (0.75 + 0.25 * np.sin(2 * np.pi * t / (bar * 2)))
+    out = drone * 0.16
+    # battito (cassa morbida) ogni 2 battiti
+    kick_len = int(SR * 0.35)
+    kt = np.arange(kick_len) / SR
+    kick = np.sin(2 * np.pi * np.cumsum(55 * np.exp(-kt * 9) + 38) / SR) * np.exp(-kt * 9)
+    for k in np.arange(0, total, 2 * beat):
+        s0 = int(k * SR)
+        e = min(n, s0 + kick_len)
+        out[s0:e] += kick[: e - s0] * 0.55
+        s1 = int((k + 0.28 * beat) * SR)  # doppio colpo tipo battito del cuore
+        e1 = min(n, s1 + kick_len)
+        if s1 < n:
+            out[s1:e1] += kick[: e1 - s1] * 0.32
+    # arpeggio
+    pl = int(SR * 0.6)
+    ptt = np.arange(pl) / SR
+    step = beat / 2
+    for j, k in enumerate(np.arange(0, total, step)):
+        ch = chords[int((k // (2 * bar)) % 4)]
+        fr = ch[[0, 2, 1, 3, 2, 1, 3, 2][j % 8]]
+        note = (np.sin(2 * np.pi * fr * ptt) + 0.3 * np.sin(4 * np.pi * fr * ptt)) * np.exp(-ptt * 6)
+        s0 = int(k * SR)
+        e = min(n, s0 + pl)
+        out[s0:e] += note[: e - s0] * 0.09
+    # entrata e uscita morbide, abbassa la musica quando parla la voce
+    out *= np.clip(t / 1.5, 0, 1) * np.clip((total - t) / 1.2, 0, 1)
+    if voice_env is not None:
+        out *= 1 - 0.45 * voice_env[:n]
+    m = np.max(np.abs(out)) or 1
+    return (out / m * 0.5).astype(np.float32)
+
+
 def sfx_cash():
     """Suono piu' ricco per un incasso grande."""
     a = sfx_coin()
@@ -1545,6 +1619,7 @@ def render_episode(ep_dir, preview=None):
         total = sum(durs)
         audio = np.zeros(int(total * SR) + SR, np.float32)
         coin, cash, whoosh, pop, ding = sfx_coin(), sfx_cash(), sfx_whoosh(), sfx_pop(), sfx_ding()
+        hit, riser = sfx_hit(), sfx_riser()
 
         def add(clip, at, gain=1.0):
             s0 = int(at * SR)
@@ -1556,6 +1631,9 @@ def render_episode(ep_dir, preview=None):
             sc = ep["scenes"][i]
             if i > 0 and (not words_mode or sc.get("sfx") == "whoosh" or sc.get("cta")):
                 add(whoosh, max(off - 0.15, 0))
+            if sc.get("sfx") == "hit":
+                add(riser, max(off - 1.4, 0))
+                add(hit, off)
             for o in sc.get("overlays") or []:
                 at = o.get("at", 0.0)
                 at = at * d if at <= 1 else at
@@ -1568,6 +1646,13 @@ def render_episode(ep_dir, preview=None):
                     add(cash if e["amount"] >= 10 else coin, off + e["t"] + e["fly"])
             off += d
         audio = audio[:int(total * SR)]
+        if not os.path.exists(MUSIC) and ep.get("music", "synth") == "synth":
+            env = np.abs(audio)
+            win = int(SR * 0.05)
+            k = np.ones(win) / win
+            env = np.convolve(env, k, mode="same")
+            env = np.clip(env / (np.percentile(env, 95) or 1), 0, 1)
+            audio += synth_music(total, env) * ep.get("music_level", 0.13)
         peak = np.max(np.abs(audio)) or 1
         if peak > 0.98:
             audio *= 0.98 / peak

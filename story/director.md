@@ -39,6 +39,16 @@ The winning option decides the direction; the most liked comment of the winning 
 - timer: a countdown when there is a deadline (set with a label like "OFFICE CLOSES IN"; jump when story time passes; turn red when urgent; hide when over).
 - stats: HOME and JOB in the top bar (short labels, e.g. "NO", "SHELTER", "ROOM", "CAR WASH", "PHONE FIX"). Change them only when the story changes them.
 
+## Leo's look (the audience dresses him)
+- His face and hair never change. His clothes follow his life: street clothes while he is broke; as money, job and
+  home improve he becomes more presentable.
+- The AUDIENCE chooses his clothes: when he has enough cash for new clothes (about $150+) and the story gives a reason
+  (a job interview, a meeting, a date, a first paycheck), make the final vote a STYLE vote: two outfits with a short
+  name ("SUIT" / "STREET", "SMART" / "SPORTY") and a subtitle with price and vibe. At most one style vote per arc.
+- In the episode after a style vote: Leo buys the winning outfit (money event with the real price), set new_look to
+  a precise visual description of it (colors, pieces, shoes, accessories) and mark wears_new=true from the shot
+  where he wears it. Keep it consistent afterwards. If the story makes him lose everything, he can go back to worse clothes.
+
 ## Money (strict ledger)
 - The top bar shows CASH. Every amount Leo earns, spends, invests, bets or loses is a money event (+ or −) in the shot where it happens.
 - He can never spend more than he has at that moment. Losses stay lost: the next episode starts from what is left plus the audience money.

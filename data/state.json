@@ -4,7 +4,7 @@
       "episode": 1,
       "folder": "ep01",
       "day_label": "DAY 1",
-      "summary": "Day 1: homeless and broke, Leo sleeps on a train platform with only a backpack (blanket, broken phone, an old photo of him with a smiling girl). He promises to become the richest man in the world. He earns $8 washing windshields at red lights, then discovers he is great at repairing phones and sells his first one for $20. Then a man in a black car offers him $500 cash to unlock 20 phones tonight, no questions asked. Cash: $28.",
+      "summary": "Day 1 (opens with a flash-forward): a stranger in a black car offers Leo $500 cash to unlock 20 phones tonight, no questions asked. 12 hours earlier Leo was homeless on a train platform with only a bag, a broken phone and an old photo of a smiling girl (WHO IS SHE? - a mystery planted for later). He promises to go from zero to the richest man alive; followers give him $10, likes $1. He earns $8 washing windshields and sells his first repaired phone for $20. The deal timer is running. Cash: $28.",
       "vote_options": [
         "DEAL",
         "HONEST"
@@ -26,5 +26,10 @@
     }
   ],
   "last_followers": null,
-  "featured": {}
+  "featured": {},
+  "look": {
+    "description": "",
+    "since_episode": 1,
+    "refs": []
+  }
 }

@@ -8,9 +8,11 @@ STR = {"type": "string"}
 SCHEMA = {
     "type": "object", "additionalProperties": False,
     "required": ["title", "day_label", "summary", "chosen_comment_index", "arc_title", "arc_part", "is_arc_finale",
-                 "shots", "vote", "instagram_caption"],
+                 "new_look", "shots", "vote", "instagram_caption"],
     "properties": {
         "title": STR,
+        "new_look": {"type": "string",
+                     "description": "empty, or the FULL description of Leo's new outfit if he changes clothes in this episode"},
         "arc_title": {"type": "string", "description": "name of the current story arc (same for all its parts)"},
         "arc_part": {"type": "integer", "description": "part number inside the arc, 1 = new arc"},
         "is_arc_finale": {"type": "boolean"},
@@ -21,8 +23,10 @@ SCHEMA = {
         "shots": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "required": ["image_prompt", "reuse_shot", "framing", "narration", "money", "stats", "timer",
-                         "overlays"],
+                         "overlays", "wears_new", "character"],
             "properties": {
+                "wears_new": {"type": "boolean", "description": "true if Leo already wears the new_look in this shot"},
+                "character": {"type": "boolean", "description": "true if Leo is visible in the picture"},
                 "image_prompt": {"type": "string", "description": "new picture description, or empty if reusing"},
                 "reuse_shot": {"type": "integer", "description": "index of an earlier shot to reuse, or -1"},
                 "framing": {"type": "string",
@@ -91,6 +95,9 @@ def build_prompt(n, cfg, st, col):
                    "what the audience would have done, and the next arc starts tomorrow).")
     stats = prev.get("stats") or {"home": "NO", "job": "NO"}
     e = cfg["episode"]
+    look = (st.get("look") or {}).get("description") or "the original street look (beanie, worn grey hoodie, ripped jeans, backpack)"
+    note = cfg.get("next_episode_note", "").strip()
+    note = f"- NOTE FROM THE PRODUCER (follow it): {note}" if note else ""
     return f"""Write EPISODE {n} (PART {n}).
 
 STORY SO FAR:
@@ -106,6 +113,8 @@ AUDIENCE RESULTS:
   a character counters, credited as "@user · N LIKES"; optional):
 {others}
 - STORY ARC: {arc_txt}
+- LEO'S CURRENT OUTFIT: {look}
+{note}
 - New followers: {col['new_followers']}, likes on the last episode: {col['likes_last_episode']} ->
   the audience gave him ${col['money_from_audience']:,}.
 - CASH at the start of this episode: ${col['net_worth_start']:,} (he ended last episode with
@@ -152,6 +161,8 @@ def build_episode(n, cfg, st, col, script):
             sc["camera"]["zoom"] = sc["camera"]["zoom"][::-1]
         if prompt:
             sc["image_prompt"] = prompt
+            sc["wears_new"] = bool(s.get("wears_new"))
+            sc["character"] = bool(s.get("character", True))
         money = []
         for m in s.get("money", []):
             amt = int(m["amount"])
@@ -228,6 +239,7 @@ def build_episode(n, cfg, st, col, script):
           **cfg["voice"], "caption_mode": "words", "net_worth": col["net_worth_start"],
           "stats": prev.get("stats") or {"home": "NO", "job": "NO"}, "scenes": scenes,
           "instagram_caption": script["instagram_caption"],
+          "new_look": (script.get("new_look") or "").strip()[:400],
           "arc": {"title": script.get("arc_title", "")[:40], "part": max(1, int(script.get("arc_part", 1))),
                   "finale": finale}}
     if cfg.get("hud_labels"):

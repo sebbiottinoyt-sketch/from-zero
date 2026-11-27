@@ -22,6 +22,11 @@ Ogni giorno GitHub fa tutto da solo:
   parte e dice "A NEW STORY STARTS TOMORROW". Soldi, casa e lavoro restano per sempre.
 - Anche il commento più votato della squadra perdente può comparire ("@nome · 40 likes").
 - Dialoghi con il nome di chi parla, messaggi inviati da Leo, etichette sui nuovi personaggi.
+- Guardaroba: il volto di Leo resta sempre uguale, i vestiti cambiano con la sua vita. Quando ha i soldi e un motivo
+  (colloquio, primo stipendio…) il voto finale diventa un voto di stile (es. SUIT o STREET): il pubblico lo veste.
+  L'outfit attuale è in `data/state.json` -> `look`.
+- Nota del produttore: in `config.json` -> `next_episode_note` puoi scrivere un'indicazione per la prossima puntata
+  (es. "fai votare il pubblico su come vestirlo"); GPT la segue. Poi svuotala.
 - Bilancio vero: ogni spesa, scommessa o perdita scala i soldi e resta per le puntate dopo.
 - Finale: dilemma con due scelte e sottotitolo (il rischio di ognuna), "TOP FANS" e "TOMORROW 6PM · PART N".
 - Le regole di regia per GPT sono in `story/director.md`; personaggio e mondo in `story/bible.md`.

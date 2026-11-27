@@ -37,7 +37,7 @@
   "episode": {
     "shots": 24,
     "words": 185,
-    "max_new_images": 16,
+    "max_new_images": 20,
     "footer": "TOMORROW 6PM · PART {next}",
     "arc_min": 3,
     "arc_max": 5,
@@ -55,5 +55,6 @@
     "voice_fx": "rubberband=pitch=1.13:formant=shifted",
     "voice_delay": 0.08,
     "scene_pad": 0.22
-  }
+  },
+  "next_episode_note": ""
 }
