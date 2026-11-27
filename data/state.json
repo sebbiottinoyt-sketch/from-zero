@@ -4,13 +4,25 @@
       "episode": 1,
       "folder": "ep01",
       "day_label": "DAY 1",
-      "summary": "Day 1: homeless and broke, he sleeps on a train platform with only a backpack (blanket, broken phone, an old photo of him with a smiling girl). He promises to become the richest man in the world. He earns his first dollars washing windshields at red lights, then discovers he is great at repairing broken phones and sells his first one for $20. Net worth at the end: $28.",
-      "vote_options": ["FIX", "WASH"],
+      "summary": "Day 1: homeless and broke, Leo sleeps on a train platform with only a backpack (blanket, broken phone, an old photo of him with a smiling girl). He promises to become the richest man in the world. He earns $8 washing windshields at red lights, then discovers he is great at repairing phones and sells his first one for $20. Then a man in a black car offers him $500 cash to unlock 20 phones tonight, no questions asked. Cash: $28.",
+      "vote_options": [
+        "DEAL",
+        "HONEST"
+      ],
       "final_net_worth": 28,
       "media_id": null,
       "permalink": null,
       "published_at": null,
-      "followers_at_publish": null
+      "followers_at_publish": null,
+      "stats": {
+        "home": "NO",
+        "job": "CAR WASH"
+      },
+      "arc": {
+        "title": "The Black Car",
+        "part": 1,
+        "finale": false
+      }
     }
   ],
   "last_followers": null,

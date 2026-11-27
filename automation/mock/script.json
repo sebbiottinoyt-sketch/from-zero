@@ -1,15 +1,405 @@
 {
- "title": "The Phone Doctor",
- "day_label": "DAY 2",
- "summary": "The audience voted FIX. He spends part of the money on a cheap repair kit, sets up a tiny phone-repair corner on a bench, fixes three phones and earns his first real customers. A woman offers him a spot in her shop if he can fix a tablet nobody else could.",
- "scenes": [
-  {"image_prompt": "Morning at the train station, he reads comments on a cracked phone screen with a huge smile, golden morning light", "caption": "You chose FIX.", "narration": "You chose fix. And you sent me five hundred and eighty two dollars. I couldn't sleep.", "money": [], "camera": "push_in"},
-  {"image_prompt": "He buys a small repair toolkit at a street market stall, holding it proudly", "caption": "First investment.", "narration": "First, a real repair kit. Forty dollars. My first investment.", "money": [{"amount": -40, "label": "TOOL KIT", "at": 0.5}], "camera": "pull_out"},
-  {"image_prompt": "He sits at a park bench with a handwritten cardboard sign, repairing a phone, people waiting", "caption": "Phone doctor is open.", "narration": "A cardboard sign, a bench, and suddenly I'm the phone doctor of the park.", "money": [{"amount": 15, "label": "SCREEN FIX", "at": 0.5}, {"amount": 15, "label": "BATTERY", "at": 0.8}], "camera": "push_in"},
-  {"image_prompt": "An old lady hugs her repaired phone happily while he smiles", "caption": "Best customer ever.", "narration": "She cried when her grandson's photos came back. She paid me double.", "money": [{"amount": 30, "label": "TIP", "at": 0.6}], "camera": "pull_out"},
-  {"image_prompt": "A stylish shop owner hands him a broken tablet in front of a small electronics shop at sunset", "caption": "A real shop?", "narration": "Then a shop owner said: fix this tablet, and you get a spot in my shop.", "money": [], "camera": "push_in"}
- ],
- "vote": {"title": "Take the deal?", "options": ["SHOP", "STREET"], "narration": "Do I join her shop, or stay free on the street? Comment shop, or street."},
- "supporters_narration": "Huge thanks to my top supporters. Want to be here next time? Tag your friends in the comments.",
- "instagram_caption": "Day 2. Net worth climbing 📈\n\nEvery follower = $10 💵 Every like = $1\nShop or street? Comment SHOP or STREET 👇\nTag your friends: the top 3 supporters appear in the next episode!\n\n#fromzero #aistory #rags2riches #series"
+  "title": "The Test",
+  "day_label": "DAY 2",
+  "summary": "Following @giulia's comment Leo asks for a real job at a repair shop, buys a $12 battery, fixes a tablet in time and gets a trial day ($25). The man in the black car threatens him.",
+  "chosen_comment_index": 1,
+  "shots": [
+    {
+      "image_prompt": "Leo on the station platform at dawn, phone in hand",
+      "reuse_shot": -1,
+      "framing": "wide",
+      "narration": "Last night a stranger offered me *five hundred* dollars.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 0,
+      "framing": "closeup_face",
+      "narration": "You voted. And it wasn't even *close*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "Leo standing in front of a small electronics repair shop",
+      "reuse_shot": -1,
+      "framing": "wide",
+      "narration": "@giulia said: go to a real shop, show them what you *can* do.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 2,
+      "framing": "medium",
+      "narration": "So that's *exactly* what I did.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "old shop owner with glasses behind a counter, suspicious",
+      "reuse_shot": -1,
+      "framing": "medium",
+      "narration": "The owner looked at my hands. Then at my *shoes*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": [
+        {
+          "type": "tag",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "",
+          "text": "MR. COSTA · THE OWNER",
+          "at": 0.1
+        }
+      ]
+    },
+    {
+      "image_prompt": "a cracked tablet on a workbench",
+      "reuse_shot": -1,
+      "framing": "detail",
+      "narration": "Fix this tablet in *one* hour, he said. Or get out.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "set",
+        "label": "SHOP CLOSES IN",
+        "seconds": 3600
+      },
+      "overlays": [
+        {
+          "type": "card",
+          "label": "the test",
+          "value": "1 tablet · 1 hour",
+          "color": "yellow",
+          "sender": "",
+          "text": "",
+          "at": 0.1
+        },
+        {
+          "type": "say",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "Mr. Costa",
+          "text": "One hour. Fix it, or don't come back.",
+          "at": 0.3
+        }
+      ]
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 5,
+      "framing": "closeup_hands",
+      "narration": "Screws. Cables. A battery *swollen* like a balloon.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 5,
+      "framing": "detail",
+      "narration": "I needed a new one. *Twelve* dollars.",
+      "money": [
+        {
+          "amount": -12,
+          "label": "BATTERY",
+          "at": 0.5
+        }
+      ],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 4,
+      "framing": "closeup_face",
+      "narration": "Forty minutes gone. My hands were *shaking*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "jump",
+        "label": "",
+        "seconds": 2400
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "close-up of the tablet screen glowing in Leo's hands",
+      "reuse_shot": -1,
+      "framing": "detail",
+      "narration": "Then the screen lit up. *Yes*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 4,
+      "framing": "medium",
+      "narration": "He didn't smile. He just said: *tomorrow*, eight a.m.",
+      "money": [
+        {
+          "amount": 25,
+          "label": "FIRST JOB",
+          "at": 0.6
+        }
+      ],
+      "stats": {
+        "home": "",
+        "job": "SHOP TRIAL"
+      },
+      "timer": {
+        "action": "hide",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 2,
+      "framing": "wide",
+      "narration": "I walked out feeling like a *millionaire*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "Leo looking at his cracked phone on a city street at night",
+      "reuse_shot": -1,
+      "framing": "medium",
+      "narration": "Then my phone buzzed.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": [
+        {
+          "type": "dm_out",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "@unknown",
+          "text": "Who are you?",
+          "at": 0.05
+        },
+        {
+          "type": "dm",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "unknown",
+          "text": "Nice shop. Shame if they knew where you sleep.",
+          "at": 0.45
+        }
+      ]
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 12,
+      "framing": "wide",
+      "narration": "The black car was *parked* across the street.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": [
+        {
+          "type": "alert",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "",
+          "text": "he followed me",
+          "at": 0.3
+        }
+      ]
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 12,
+      "framing": "closeup_face",
+      "narration": "He wants the phones *tonight*. Or he talks.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "set",
+        "label": "HE WAITS UNTIL",
+        "seconds": 1800
+      },
+      "overlays": [
+        {
+          "type": "say",
+          "label": "",
+          "value": "",
+          "color": "yellow",
+          "sender": "@marco_dev · 40 likes",
+          "text": "Deal, 500 is 500",
+          "at": 0.1
+        }
+      ]
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 4,
+      "framing": "medium",
+      "narration": "If the owner finds out, I lose the job *forever*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "red",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": []
+    },
+    {
+      "image_prompt": "",
+      "reuse_shot": 2,
+      "framing": "wide",
+      "narration": "Send this to the friend who never gets *scared*.",
+      "money": [],
+      "stats": {
+        "home": "",
+        "job": ""
+      },
+      "timer": {
+        "action": "none",
+        "label": "",
+        "seconds": 0
+      },
+      "overlays": [
+        {
+          "type": "card",
+          "label": "send this to",
+          "value": "the friend who never gets scared",
+          "color": "yellow",
+          "sender": "",
+          "text": "",
+          "at": 0.1
+        }
+      ]
+    }
+  ],
+  "vote": {
+    "question": "WHAT WOULD YOU DO?",
+    "options": [
+      {
+        "label": "TELL",
+        "sub": "tell the owner, but he may fire you"
+      },
+      {
+        "label": "HIDE",
+        "sub": "say nothing, but he knows where you sleep"
+      }
+    ],
+    "narration": "Do I tell the owner, or hide it? Comment *tell* or *hide*."
+  },
+  "instagram_caption": "Day 2. Cash: $1,831. A trial job... and a threat 😰\n\nEvery follower = $10 💵 Every like = $1\nTELL or HIDE? The most liked comment decides Part 3.\nTag your friends: the top fans appear in the next episode!\n\n#fromzero #aistory #interactive #series",
+  "arc_title": "The Black Car",
+  "arc_part": 2,
+  "is_arc_finale": true
 }

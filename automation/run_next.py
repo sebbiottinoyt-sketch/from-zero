@@ -15,6 +15,13 @@ from common import DATA, MOCK, ROOT, config, ep_folder, load_json, log, save_sta
 sys.path.insert(0, ROOT)
 
 
+def final_stats(ep):
+    st = dict(ep.get("stats") or {"home": "NO", "job": "NO"})
+    for s in ep["scenes"]:
+        st.update(s.get("stats") or {})
+    return st
+
+
 def make():
     import auto_anim
     import collect
@@ -60,7 +67,9 @@ def make():
     st["episodes"].append({
         "episode": n, "folder": f"ep{n:02d}", "day_label": ep.get("day_label"), "title": ep.get("title"),
         "summary": script.get("summary", ""), "vote_options": next(
-            (s["cta"]["options"] for s in ep["scenes"] if s.get("cta")), []),
+            ([o["label"] if isinstance(o, dict) else o for o in s["cta"]["options"]]
+             for s in ep["scenes"] if s.get("cta")), []),
+        "stats": final_stats(ep), "arc": ep.get("arc"),
         "final_net_worth": render.final_worth(ep), "media_id": None, "permalink": None,
         "published_at": None, "followers_at_publish": None,
     })

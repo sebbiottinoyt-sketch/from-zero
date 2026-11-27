@@ -1,7 +1,8 @@
 {
   "instagram": {
-    "username": "fromzero",
-    "api_host": "https://graph.instagram.com",
+    "username": "fromzero.leo",
+    "user_id": "",
+    "api_host": "https://graph.facebook.com",
     "api_version": "v26.0"
   },
   "openai": {
@@ -26,11 +27,21 @@
     "points_per_comment_like": 1,
     "max_comment_like_points": 10,
     "blocked_users": [],
-    "blocked_words": ["porn", "sex", "nazi", "kill"]
+    "blocked_words": [
+      "porn",
+      "sex",
+      "nazi",
+      "kill"
+    ]
   },
   "episode": {
-    "story_scenes": 5,
-    "target_seconds": 45
+    "shots": 24,
+    "words": 185,
+    "max_new_images": 16,
+    "footer": "TOMORROW 6PM · PART {next}",
+    "arc_min": 3,
+    "arc_max": 5,
+    "finale_footer": "A NEW STORY STARTS TOMORROW"
   },
   "character_refs": [
     "episodes/ep01/04-hand.png",
@@ -42,7 +53,7 @@
     "kokoro_voice": "am_fenrir",
     "kokoro_speed": 1.08,
     "voice_fx": "rubberband=pitch=1.13:formant=shifted",
-    "voice_delay": 0.2,
-    "scene_pad": 0.9
+    "voice_delay": 0.08,
+    "scene_pad": 0.22
   }
 }

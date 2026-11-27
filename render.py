@@ -174,6 +174,23 @@ def sfx_whoosh():
     return (out * env * 0.10).astype(np.float32)
 
 
+def sfx_pop():
+    n = int(SR * 0.09)
+    t = np.arange(n) / SR
+    f = 520 + 900 * t / 0.09
+    a = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 38)
+    return (a * 0.12).astype(np.float32)
+
+
+def sfx_ding():
+    t = np.arange(int(SR * 0.5)) / SR
+    a = np.zeros_like(t)
+    for st, fr in ((0.0, 1318.5), (0.11, 1760.0)):
+        tt = np.clip(t - st, 0, None)
+        a += np.where(t >= st, np.exp(-tt * 9), 0) * np.sin(2 * np.pi * fr * tt)
+    return (a * 0.11).astype(np.float32)
+
+
 def sfx_cash():
     """Suono piu' ricco per un incasso grande."""
     a = sfx_coin()
@@ -317,64 +334,66 @@ def padlock(d, x, y, s, fill):
     d.line([x + s * 0.82, y + s * 0.4, x + s * 0.82, y + s * 0.5], fill=fill, width=max(2, int(s * 0.14)))
 
 
+LABELS_DEFAULT = {"ep": "EP", "cash": "CASH", "home": "HOME", "job": "JOB", "no": "NO"}
+
+
 class Hud:
-    BAR_Y, BAR_H = 90, 116
-    STRIP_Y = 222
-    POP_Y = 300
+    """Barra in alto: episodio, soldi (contatore a rulli), casa, lavoro + timer + elenco episodi."""
+    BAR_Y, BAR_H = 84, 96
+    TIMER_Y = 194
+    STRIP_H = 50
 
     def __init__(self, ep, history):
         self.ep = ep
         self.history = history  # [(numero, soldi_finali)] degli episodi precedenti
+        self.lab = dict(LABELS_DEFAULT, **ep.get("hud_labels", {}))
         self.coin = coin_sprite(58)
         self.coin_big = coin_sprite(78)
-        self.coin_icon = coin_sprite(56)
         self.digit_cache = {}
+        self.segs = None
         self.static = self._static()
-        self.counter_center = (W - 220, self.BAR_Y + self.BAR_H / 2)
+        x0, x1 = self.segs[1]
+        self.counter_center = ((x0 + x1) / 2, self.BAR_Y + 58)
 
     def _static(self):
         im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        # sfumatura scura in alto e in basso per la leggibilita'
         grad = np.zeros((H, W, 4), np.uint8)
-        top = np.clip(1 - np.arange(H) / 480, 0, 1) ** 1.6 * 170
-        bot = np.clip((np.arange(H) - (H - 820)) / 820, 0, 1) ** 1.5 * 190
+        top = np.clip(1 - np.arange(H) / 420, 0, 1) ** 1.6 * 150
+        bot = np.clip((np.arange(H) - (H - 760)) / 760, 0, 1) ** 1.5 * 200
         grad[..., 3] = np.maximum(top, bot)[:, None].astype(np.uint8)
         im = Image.alpha_composite(im, Image.fromarray(grad, "RGBA"))
-        # vignettatura
         yy, xx = np.mgrid[0:H, 0:W]
         v = np.sqrt(((xx - W / 2) / (W * 0.75)) ** 2 + ((yy - H / 2) / (H * 0.72)) ** 2)
         vig = np.zeros((H, W, 4), np.uint8)
         vig[..., 3] = (np.clip(v - 0.55, 0, 1) * 200).astype(np.uint8)
         im = Image.alpha_composite(im, Image.fromarray(vig, "RGBA"))
 
-        x0, x1, y0 = 36, W - 36, self.BAR_Y
-        shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(shadow).rounded_rectangle([x0, y0 + 10, x1, y0 + self.BAR_H + 10], radius=58,
-                                                 fill=(0, 0, 0, 130))
-        im = Image.alpha_composite(im, shadow.filter(ImageFilter.GaussianBlur(16)))
+        x0, x1, y0, h = 70, W - 70, self.BAR_Y, self.BAR_H
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(sh).rounded_rectangle([x0, y0 + 8, x1, y0 + h + 8], radius=28, fill=(0, 0, 0, 120))
+        im = Image.alpha_composite(im, sh.filter(ImageFilter.GaussianBlur(14)))
         d = ImageDraw.Draw(im)
-        d.rounded_rectangle([x0, y0, x1, y0 + self.BAR_H], radius=58, fill=(10, 14, 20, 210),
-                            outline=(255, 255, 255, 50), width=2)
-        # logo + episodio
-        fl = font(FONT_BLACK, 48)
-        d.text((x0 + 42, y0 + 14), "FROM", font=fl, fill=(255, 255, 255, 255))
-        lw = d.textlength("FROM ", font=fl)
-        d.text((x0 + 42 + lw, y0 + 14), "ZERO", font=fl, fill=GREEN + (255,))
-        fs = font(FONT_BOLD, 26)
-        ep_txt = f"EPISODE {self.ep['episode']}"
-        day = self.ep.get("day_label", f"DAY {self.ep['episode']}")
-        d.text((x0 + 44, y0 + 72), ep_txt, font=fs, fill=GREEN + (255,))
-        ew = d.textlength(ep_txt + "  ", font=fs)
-        d.text((x0 + 44 + ew, y0 + 72), "·  " + day, font=fs, fill=(200, 205, 212, 255))
-        # zona contatore (a destra)
-        self.cnt_box = (W - 470, y0 + 12, x1 - 12, y0 + self.BAR_H - 12)
-        bx0, by0, bx1, by1 = self.cnt_box
-        d.rounded_rectangle([bx0, by0, bx1, by1], radius=46, fill=(4, 30, 16, 235), outline=GREEN + (120,), width=2)
-        fn = font(FONT_BOLD, 19)
-        lcx = bx0 + 96 + (bx1 - bx0 - 120) / 2
-        d.text((lcx - d.textlength("NET WORTH", font=fn) / 2, by0 + 8), "NET WORTH", font=fn,
-               fill=(160, 220, 180, 255))
-        im.alpha_composite(self.coin_icon, (bx0 + 22, int((by0 + by1) / 2 - 28)))
+        d.rounded_rectangle([x0, y0, x1, y0 + h], radius=28, fill=(8, 10, 14, 220), outline=(255, 255, 255, 40),
+                            width=2)
+        # segmenti: episodio | soldi | casa | lavoro
+        wsz = [170, 330, 170, 170]
+        scale = (x1 - x0) / sum(wsz)
+        xs = [x0]
+        for wv in wsz:
+            xs.append(xs[-1] + wv * scale)
+        self.segs = [(xs[i], xs[i + 1]) for i in range(4)]
+        fl = font(FONT_BOLD, 19)
+        labels = ["FROM ZERO", self.lab["cash"], self.lab["home"], self.lab["job"]]
+        for i, (a, b) in enumerate(self.segs):
+            if i:
+                d.line([(a, y0 + 18), (a, y0 + h - 18)], fill=(255, 255, 255, 50), width=2)
+            lw = d.textlength(labels[i], font=fl)
+            col = GREEN + (255,) if i == 1 else (170, 176, 186, 255)
+            d.text(((a + b) / 2 - lw / 2, y0 + 12), labels[i], font=fl, fill=col)
+        fe = font(FONT_BLACK, 40)
+        et = f"{self.lab['ep']} {self.ep['episode']}"
+        a, b = self.segs[0]
+        d.text(((a + b) / 2 - d.textlength(et, font=fe) / 2, y0 + 38), et, font=fe, fill=(255, 255, 255, 255))
         return im
 
     # --- contatore a rulli -------------------------------------------------
@@ -392,6 +411,7 @@ class Hud:
 
     def counter_image(self, v, size=66, color=GREEN + (255,)):
         """Disegna il valore v (anche frazionario) come contatore a rulli."""
+        v = max(0.0, v)
         vi = int(math.floor(v + 1e-6))
         digits = str(vi + (1 if v - vi > 0.5 else 0))
         n = len(digits)
@@ -425,28 +445,63 @@ class Hud:
                 x += cw
         return im
 
-    def draw(self, ov, value, bump, glow):
-        bx0, by0, bx1, by1 = self.cnt_box
+    def _value_text(self, d, txt, a, b, y, flash):
+        txt = (txt or self.lab["no"]).upper()
+        size = 40
+        f = font(FONT_BLACK, size)
+        while d.textlength(txt, font=f) > (b - a) - 20 and size > 18:
+            size -= 2
+            f = font(FONT_BLACK, size)
+        is_no = txt == self.lab["no"].upper()
+        col = (235, 238, 242, 255) if is_no else GREEN + (255,)
+        if flash > 0:
+            col = tuple(int(c + (255 - c) * flash) for c in col[:3]) + (255,)
+        d.text(((a + b) / 2 - d.textlength(txt, font=f) / 2, y + (40 - size) * 0.6), txt, font=f, fill=col)
+
+    def draw(self, ov, value, bump, glow, stats=None, stat_flash=0.0, timer=None, show_strip=False):
+        stats = stats or {}
+        d = ImageDraw.Draw(ov)
+        y0 = self.BAR_Y
+        a, b = self.segs[1]
         if glow > 0:
-            g = Image.new("RGBA", (bx1 - bx0 + 80, by1 - by0 + 80), (0, 0, 0, 0))
-            ImageDraw.Draw(g).rounded_rectangle([40, 40, 40 + bx1 - bx0, 40 + by1 - by0], radius=46,
-                                                fill=GREEN + (int(170 * glow),))
-            ov.alpha_composite(g.filter(ImageFilter.GaussianBlur(16)), (bx0 - 40, by0 - 40))
-            ImageDraw.Draw(ov).rounded_rectangle([bx0, by0, bx1, by1], radius=46, outline=GREEN + (int(255 * glow),),
-                                                 width=3)
-        avail = (bx1 - bx0) - 96 - 30
-        num = self.counter_image(value)
-        if num.width > avail:  # cifre grandi: rimpicciolisce per stare nel riquadro
-            num = self.counter_image(value, size=max(30, int(66 * avail / num.width)))
+            g = Image.new("RGBA", (int(b - a) + 60, self.BAR_H + 60), (0, 0, 0, 0))
+            ImageDraw.Draw(g).rounded_rectangle([30, 30, 30 + b - a, 30 + self.BAR_H], radius=24,
+                                                fill=GREEN + (int(150 * glow),))
+            ov.alpha_composite(g.filter(ImageFilter.GaussianBlur(14)), (int(a) - 30, y0 - 30))
+        avail = (b - a) - 30
+        num = self.counter_image(value, size=54)
+        if num.width > avail:
+            num = self.counter_image(value, size=max(24, int(54 * avail / num.width)))
         s = 1 + 0.16 * bump
         if s != 1:
             num = num.resize((int(num.width * s), int(num.height * s)), Image.BICUBIC)
-        cx = bx0 + 96 + (bx1 - bx0 - 96 - 24) / 2
-        cy = by0 + 30 + (by1 - by0 - 30) / 2
+        cx, cy = (a + b) / 2, y0 + 60
         ov.alpha_composite(num, (int(cx - num.width / 2), int(cy - num.height / 2)))
         self.counter_center = (cx, cy)
+        for key, (sa, sb) in (("home", self.segs[2]), ("job", self.segs[3])):
+            self._value_text(d, stats.get(key), sa, sb, y0 + 38, stat_flash if key in stats.get("_changed", ()) else 0)
 
-        # elenco episodi (chip): episodi passati, quello attuale, i prossimi bloccati
+        y = y0 + self.BAR_H + 14
+        if timer:
+            label, secs, red = timer
+            secs = max(0, int(math.ceil(secs)))
+            hh, mm, ss = secs // 3600, (secs % 3600) // 60, secs % 60
+            tt = f"{hh:02d}:{mm:02d}:{ss:02d}" if hh else f"{mm:02d}:{ss:02d}"
+            ft, fl = font(FONT_BLACK, 50), font(FONT_BOLD, 18)
+            tw = max(d.textlength(tt, font=ft), d.textlength(label, font=fl)) + 56
+            x0 = W / 2 - tw / 2
+            d.rounded_rectangle([x0, y, x0 + tw, y + 92], radius=20, fill=(8, 10, 14, 225),
+                                outline=((255, 70, 70, 200) if red else (255, 255, 255, 40)), width=2)
+            d.text((W / 2 - d.textlength(label, font=fl) / 2, y + 8), label, font=fl,
+                   fill=(255, 120, 110, 255) if red else (255, 196, 70, 255))
+            d.text((W / 2 - d.textlength(tt, font=ft) / 2, y + 30), tt, font=ft,
+                   fill=(255, 70, 70, 255) if red else (255, 255, 255, 255))
+            y += 92 + 12
+        if show_strip:
+            y = self._strip(d, value, y)
+        self.content_top = y + 8
+
+    def _strip(self, d, value, y):
         cur = self.ep["episode"]
         chips = [(n, m, "past") for n, m in self.history[-3:]]
         chips.append((cur, value, "now"))
@@ -454,45 +509,341 @@ class Hud:
         while len(chips) < 5:
             chips.append((nxt, None, "lock"))
             nxt += 1
-        gap, cw, chh = 10, 194, 54
+        gap, cw, chh = 10, 186, self.STRIP_H
         x = (W - (len(chips) * cw + (len(chips) - 1) * gap)) / 2
-        d = ImageDraw.Draw(ov)
-        fe = font(FONT_BLACK, 23)
-        fm = font(FONT_BOLD, 23)
-        y = self.STRIP_Y
         for n, m, kind in chips:
             if kind == "now":
-                d.rounded_rectangle([x, y, x + cw, y + chh], radius=27, fill=GREEN + (255,))
-                tc, mc = (8, 30, 14, 255), (8, 30, 14, 255)
+                d.rounded_rectangle([x, y, x + cw, y + chh], radius=25, fill=GREEN + (255,))
+                tc = mc = (8, 30, 14, 255)
             elif kind == "past":
-                d.rounded_rectangle([x, y, x + cw, y + chh], radius=27, fill=(14, 20, 26, 215),
+                d.rounded_rectangle([x, y, x + cw, y + chh], radius=25, fill=(14, 20, 26, 215),
                                     outline=GREEN + (170,), width=2)
                 tc, mc = (230, 235, 240, 255), GREEN + (255,)
             else:
-                d.rounded_rectangle([x, y, x + cw, y + chh], radius=27, fill=(14, 18, 24, 170),
+                d.rounded_rectangle([x, y, x + cw, y + chh], radius=25, fill=(14, 18, 24, 170),
                                     outline=(255, 255, 255, 45), width=2)
-                tc, mc = (140, 146, 156, 255), (140, 146, 156, 255)
-            et = f"EP {n}"
-            ew = d.textlength(et, font=fe)
+                tc = mc = (140, 146, 156, 255)
+            et = f"{self.lab['ep']} {n}"
+            sz = 22
+            fe, fm = font(FONT_BLACK, sz), font(FONT_BOLD, sz)
             if m is None:
-                inner = ew + 12 + 20
-                sx = x + (cw - inner) / 2
-                d.text((sx, y + 15), et, font=fe, fill=tc)
-                padlock(d, sx + ew + 12, y + 15, 20, mc)
+                ew = d.textlength(et, font=fe)
+                sx = x + (cw - (ew + 30)) / 2
+                d.text((sx, y + 13), et, font=fe, fill=tc)
+                padlock(d, sx + ew + 10, y + 13, 20, mc)
             else:
-                mt = money(math.floor(m + 0.5))
-                fe2, fm2 = fe, fm
-                sz = 23
-                while sz > 14 and d.textlength(et, font=fe2) + 12 + d.textlength(mt, font=fm2) > cw - 24:
+                mt = money(math.floor(max(0, m) + 0.5))
+                while sz > 13 and d.textlength(et, font=fe) + 10 + d.textlength(mt, font=fm) > cw - 22:
                     sz -= 1
-                    fe2, fm2 = font(FONT_BLACK, sz), font(FONT_BOLD, sz)
-                ew = d.textlength(et, font=fe2)
-                mw = d.textlength(mt, font=fm2)
-                sx = x + (cw - (ew + 12 + mw)) / 2
-                yy = y + 15 + (23 - sz) * 0.5
-                d.text((sx, yy), et, font=fe2, fill=tc)
-                d.text((sx + ew + 12, yy), mt, font=fm2, fill=mc)
+                    fe, fm = font(FONT_BLACK, sz), font(FONT_BOLD, sz)
+                ew, mw = d.textlength(et, font=fe), d.textlength(mt, font=fm)
+                sx = x + (cw - (ew + 10 + mw)) / 2
+                yy = y + 13 + (22 - sz) * 0.5
+                d.text((sx, yy), et, font=fe, fill=tc)
+                d.text((sx + ew + 10, yy), mt, font=fm, fill=mc)
             x += cw + gap
+        return y + chh + 10
+
+
+# ----------------------------------------------------------------------------
+# Riquadri sopra l'immagine: info, messaggi, commento vincente, voti, avvisi
+# ----------------------------------------------------------------------------
+CARD_COLORS = {"green": GREEN, "yellow": (255, 205, 60), "red": (255, 72, 72), "white": (255, 255, 255),
+               "blue": (90, 170, 255)}
+OPT_COLORS = [(255, 122, 26), (56, 140, 255)]
+
+
+def wrap_text(d, text, f, max_w):
+    lines, line = [], []
+    for w in text.split():
+        if line and d.textlength(" ".join(line + [w]), font=f) > max_w:
+            lines.append(" ".join(line))
+            line = [w]
+        else:
+            line.append(w)
+    if line:
+        lines.append(" ".join(line))
+    return lines
+
+
+def _fade(img, a):
+    if a >= 0.999:
+        return img
+    arr = np.array(img)
+    arr[..., 3] = (arr[..., 3] * max(0.0, a)).astype(np.uint8)
+    return Image.fromarray(arr)
+
+
+def _box(w, h, fill=(10, 12, 16, 228), outline=None, radius=24):
+    im = Image.new("RGBA", (int(w) + 40, int(h) + 40), (0, 0, 0, 0))
+    sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle([20, 26, 20 + w, 26 + h], radius=radius, fill=(0, 0, 0, 120))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10)))
+    ImageDraw.Draw(im).rounded_rectangle([20, 20, 20 + w, 20 + h], radius=radius, fill=fill,
+                                         outline=outline, width=2 if outline else 0)
+    return im
+
+
+def overlay_sprite(o, tl):
+    """Immagine del riquadro o al tempo tl (secondi da quando compare)."""
+    kind = o.get("type", "card")
+    dd = ImageDraw.Draw(Image.new("RGBA", (8, 8)))
+    if kind == "card":
+        fl, fv = font(FONT_BOLD, 24), font(FONT_BLACK, 56)
+        label, value = o.get("label", "").upper(), o.get("value", "").upper()
+        vlines = wrap_text(dd, value, fv, 880)
+        w = max([dd.textlength(label, font=fl)] + [dd.textlength(x, font=fv) for x in vlines]) + 70
+        h = (40 if label else 16) + 66 * len(vlines) + 22
+        im = _box(w, h)
+        d = ImageDraw.Draw(im)
+        col = CARD_COLORS.get(o.get("color", "yellow"), CARD_COLORS["yellow"])
+        y = 20 + 14
+        if label:
+            d.text((20 + w / 2 - d.textlength(label, font=fl) / 2, y), label, font=fl, fill=(225, 228, 235, 255))
+            y += 36
+        for x in vlines:
+            d.text((20 + w / 2 - d.textlength(x, font=fv) / 2, y), x, font=fv, fill=col + (255,))
+            y += 66
+        return im
+    if kind == "tag":
+        f = font(FONT_BLACK, 50)
+        txt = o.get("text", "").upper()
+        tw = dd.textlength(txt, font=f)
+        im = Image.new("RGBA", (int(tw) + 60, 100), (0, 0, 0, 0))
+        ImageDraw.Draw(im).text((30, 18), txt, font=f, fill=(255, 205, 60, 255), stroke_width=7,
+                                stroke_fill=(0, 0, 0, 255))
+        return im
+    if kind in ("dm", "comment", "say"):
+        w = 940
+        ft = font(FONT_BOLD, 36)
+        full = o.get("text", "")
+        n = int(len(full) * min(1.0, tl / max(0.4, min(len(full) * 0.035, o.get("_span", 3) * 0.7))))
+        shown = full[:n]
+        lines = wrap_text(dd, full, ft, w - 60)
+        # righe calcolate sul testo completo, cosi' il riquadro non cambia misura
+        out_lines, used = [], 0
+        for ln in lines:
+            take = max(0, min(len(ln), n - used))
+            out_lines.append(ln[:take])
+            used += len(ln) + 1
+        head = 96 if kind == "comment" else 52
+        if kind == "say" and not o.get("from"):
+            head = 22
+        h = head + 46 * len(lines) + 24
+        im = _box(w, h)
+        d = ImageDraw.Draw(im)
+        if kind in ("dm", "say"):
+            fh = font(FONT_BOLD, 22)
+            if kind == "say":
+                head_txt = o.get("from", "")
+            elif o.get("outgoing"):
+                head_txt = "YOU → " + o.get("from", "")
+            else:
+                head_txt = "NEW MESSAGE · " + o.get("from", "")
+            if head_txt:
+                d.text((20 + 30, 20 + 16), head_txt.upper(), font=fh,
+                       fill=(255, 205, 60, 255) if kind == "say" else GREEN + (255,))
+        else:
+            fh, fu = font(FONT_BOLD, 20), font(FONT_BLACK, 34)
+            d.text((50, 34), "MOST LIKED COMMENT", font=fh, fill=GREEN + (255,))
+            d.text((50, 60), "@" + o.get("user", "").lstrip("@"), font=fu, fill=(255, 255, 255, 255))
+            team = ("TEAM " + o.get("team", "")).upper()
+            fp = font(FONT_BLACK, 20)
+            pw = d.textlength(team, font=fp) + 28
+            d.rounded_rectangle([20 + w - 30 - pw, 32, 20 + w - 30, 66], radius=17, fill=GREEN + (255,))
+            d.text((20 + w - 30 - pw + 14, 38), team, font=fp, fill=(8, 30, 14, 255))
+            lk = f"♥ {o.get('likes', 0)}"
+            fk = font(FONT_BOLD, 26)
+            d.text((20 + w - 30 - d.textlength(lk, font=fk), 72), lk, font=fk, fill=(255, 80, 90, 255))
+        y = 20 + head
+        for ln in out_lines:
+            d.text((50, y), ln, font=ft, fill=(255, 255, 255, 255))
+            y += 46
+        if n < len(full) and int(tl * 3) % 2 == 0:  # cursore
+            d.rectangle([50 + d.textlength(out_lines[-1] if out_lines else "", font=ft) + 4, y - 42,
+                         50 + d.textlength(out_lines[-1] if out_lines else "", font=ft) + 8, y - 8],
+                        fill=(255, 255, 255, 200))
+        return im
+    if kind == "votes":
+        res = o.get("results", [])
+        w, h = 900, 66 + 74 * len(res) + 10
+        im = _box(w, h)
+        d = ImageDraw.Draw(im)
+        fh, fo, fp = font(FONT_BOLD, 22), font(FONT_BLACK, 30), font(FONT_BLACK, 30)
+        title = o.get("title", "THE VOTES ARE IN").upper()
+        d.text((20 + w / 2 - d.textlength(title, font=fh) / 2, 20 + 16), title, font=fh, fill=(255, 205, 60, 255))
+        p = ease_out(tl / 1.4)
+        y = 20 + 60
+        for j, (lab, pct) in enumerate(res):
+            col = OPT_COLORS[j % 2]
+            d.rounded_rectangle([50, y, 20 + w - 30, y + 58], radius=12, fill=(40, 44, 52, 255))
+            fill_w = (w - 60) * pct / 100 * p
+            if fill_w > 6:
+                d.rounded_rectangle([50, y, 50 + fill_w, y + 58], radius=12, fill=col + (255,))
+            d.text((68, y + 11), str(lab).upper(), font=fo, fill=(255, 255, 255, 255))
+            pt = f"{int(round(pct * p))}%"
+            d.text((20 + w - 50 - d.textlength(pt, font=fp), y + 11), pt, font=fp, fill=(255, 255, 255, 255))
+            y += 74
+        return im
+    if kind == "alert":
+        f = font(FONT_BLACK, 62)
+        lines = wrap_text(dd, o.get("text", "").upper(), f, 960)
+        w = max(dd.textlength(x, font=f) for x in lines) + 40
+        im = Image.new("RGBA", (int(w) + 40, 76 * len(lines) + 40), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        y = 20
+        for x in lines:
+            d.text((20 + (w - d.textlength(x, font=f)) / 2, y), x, font=f, fill=(255, 64, 64, 255), stroke_width=8,
+                   stroke_fill=(20, 0, 0, 255))
+            y += 76
+        return im
+    return None
+
+
+class Overlays:
+    def __init__(self, items, dur):
+        self.items = []
+        for o in items or []:
+            a = o.get("at", 0.0)
+            u = o.get("until", 1.0)
+            t0 = a * dur if a <= 1 else a
+            t1 = u * dur if u <= 1 else u
+            o = dict(o, _span=max(0.5, t1 - t0))
+            self.items.append((t0, t1, o))
+        self.cache = {}
+
+    def draw(self, ov, t, y_top):
+        y = y_top
+        for idx, (t0, t1, o) in enumerate(self.items):
+            if not (t0 <= t < t1 + 1e-6):
+                continue
+            if o.get("type") == "tag":
+                sp = self.cache.get(idx) or overlay_sprite(o, 0)
+                self.cache[idx] = sp
+                tl = t - t0
+                sp2 = _fade(sp, min(1.0, tl / 0.15))
+                ov.alpha_composite(sp2, (int(W / 2 - sp.width / 2), int(H * 0.5 - 30 * (1 - ease_out(tl / 0.3)))))
+                continue
+            tl = t - t0
+            static = o.get("type", "card") in ("card", "alert")
+            if static and idx in self.cache:
+                sp = self.cache[idx]
+            else:
+                sp = overlay_sprite(o, tl)
+                if static:
+                    self.cache[idx] = sp
+            if sp is None:
+                continue
+            s = 0.82 + 0.18 * ease_back(tl / 0.28)
+            a = min(1.0, tl / 0.12, (t1 - t) / 0.12 if t1 - t < 0.12 else 1.0)
+            if o.get("type") == "alert":
+                s *= 1 + 0.03 * math.sin(t * 18)
+            if abs(s - 1) > 1e-3:
+                sp = sp.resize((max(1, int(sp.width * s)), max(1, int(sp.height * s))), Image.BICUBIC)
+            sp = _fade(sp, a)
+            ov.alpha_composite(sp, (int(W / 2 - sp.width / 2), int(y - (sp.height * (s - 1)) / 2)))
+            y += int(sp.height / max(s, 0.01)) - 14
+
+
+def word_sprite(word, hl, size=104):
+    f = font(FONT_BLACK, size)
+    dd = ImageDraw.Draw(Image.new("RGBA", (8, 8)))
+    while dd.textlength(word, font=f) > W - 110 and size > 50:
+        size -= 6
+        f = font(FONT_BLACK, size)
+    tw = dd.textlength(word, font=f)
+    im = Image.new("RGBA", (int(tw) + 60, int(size * 1.45)), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    col = {"money": GREEN, "alert": (255, 72, 72), True: (255, 205, 60)}.get(hl, (255, 255, 255))
+    d.text((30, 14), word, font=f, fill=col + (255,), stroke_width=11, stroke_fill=(0, 0, 0, 255))
+    sh = np.array(im)
+    sh[..., :3] = 0
+    sh[..., 3] = (sh[..., 3] * 0.55).astype(np.uint8)
+    out = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    out.alpha_composite(Image.fromarray(sh).filter(ImageFilter.GaussianBlur(8)), (0, 6))
+    out.alpha_composite(im)
+    return out
+
+
+def cta_full(cta, t, ep):
+    """Schermata finale del voto, stile 'tu cosa faresti?'."""
+    im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    opts = cta.get("options", [])
+    opts = [o if isinstance(o, dict) else {"label": o, "sub": ""} for o in opts]
+    nxt = ep["episode"] + 1
+    lab = [o["label"].upper() for o in opts]
+    if cta.get("finale"):
+        head = cta.get("header", "THE FINALE").upper()
+        sub = cta.get("subheader", "THANK YOU TO EVERYONE WHO VOTED").upper()
+    else:
+        head = cta.get("header", f"COMMENT {' OR '.join(lab)}").upper()
+        sub = cta.get("subheader", f"THE MOST LIKED COMMENT ENTERS PART {nxt}").upper()
+    fh, fs = font(FONT_BLACK, 30), font(FONT_BOLD, 20)
+    bw = max(d.textlength(head, font=fh), d.textlength(sub, font=fs)) + 60
+    y = 470
+    d.rounded_rectangle([W / 2 - bw / 2, y, W / 2 + bw / 2, y + 92], radius=18, fill=(0, 0, 0, 215))
+    d.text((W / 2 - d.textlength(head, font=fh) / 2, y + 14), head, font=fh, fill=(255, 255, 255, 255))
+    d.text((W / 2 - d.textlength(sub, font=fs) / 2, y + 56), sub, font=fs, fill=(255, 205, 60, 255))
+    q = cta.get("title", "WHAT WOULD YOU DO?").upper()
+    fq = font(FONT_BLACK, 80)
+    while d.textlength(q, font=fq) > W - 80:
+        fq = font(FONT_BLACK, fq.size - 4)
+    y += 130
+    d.text((W / 2 - d.textlength(q, font=fq) / 2, y), q, font=fq, fill=(255, 255, 255, 255), stroke_width=9,
+           stroke_fill=(0, 0, 0, 255))
+    y += 130
+    bwid, bh = 860, 150
+    fo, fsub, fr = font(FONT_BLACK, 70), font(FONT_BLACK, 21), font(FONT_BLACK, 36)
+    for j, o in enumerate(opts[:2]):
+        ph = 2 * math.pi * (t / 1.2) + j * math.pi
+        s = 1 + 0.035 * (0.5 + 0.5 * math.sin(ph))
+        col = OPT_COLORS[j]
+        card = Image.new("RGBA", (bwid + 80, bh + 80), (0, 0, 0, 0))
+        g = Image.new("RGBA", card.size, (0, 0, 0, 0))
+        ImageDraw.Draw(g).rounded_rectangle([40, 40, 40 + bwid, 40 + bh], radius=22,
+                                            fill=col + (int(90 + 90 * (0.5 + 0.5 * math.sin(ph))),))
+        card.alpha_composite(g.filter(ImageFilter.GaussianBlur(18)))
+        cd = ImageDraw.Draw(card)
+        cd.rounded_rectangle([40, 40, 40 + bwid, 40 + bh], radius=22, fill=col + (255,),
+                             outline=(0, 0, 0, 255), width=4)
+        L = o["label"].upper()
+        f2 = fo
+        while cd.textlength(L, font=f2) > bwid - 60:
+            f2 = font(FONT_BLACK, f2.size - 4)
+        cd.text((40 + bwid / 2 - cd.textlength(L, font=f2) / 2, 40 + 18), L, font=f2, fill=(16, 18, 34, 255))
+        sb = o.get("sub", "").upper()
+        if sb:
+            f3 = fsub
+            while cd.textlength(sb, font=f3) > bwid - 40:
+                f3 = font(FONT_BLACK, f3.size - 1)
+            cd.text((40 + bwid / 2 - cd.textlength(sb, font=f3) / 2, 40 + bh - 40), sb, font=f3,
+                    fill=(16, 18, 34, 230))
+        card = card.resize((int(card.width * s), int(card.height * s)), Image.BICUBIC)
+        im.alpha_composite(card, (int(W / 2 - card.width / 2), int(y + bh / 2 + 40 - card.height / 2 - 40)))
+        y += bh + 10
+        if j == 0:
+            d.text((W / 2 - d.textlength("OR", font=fr) / 2, y), "OR", font=fr, fill=(255, 205, 60, 255),
+                   stroke_width=5, stroke_fill=(0, 0, 0, 255))
+            y += 50
+    y += 14
+    foot = cta.get("footer", f"TOMORROW · PART {nxt}").upper()
+    ff = font(FONT_BLACK, 30)
+    d.text((W / 2 - d.textlength(foot, font=ff) / 2, y), foot, font=ff, fill=(255, 205, 60, 255), stroke_width=5,
+           stroke_fill=(0, 0, 0, 255))
+    fans = cta.get("fans") or []
+    if fans:
+        y += 52
+        line = "TOP FANS: " + "  ·  ".join("@" + f.lstrip("@") for f in fans[:3])
+        fz = font(FONT_BOLD, 26)
+        while d.textlength(line, font=fz) > W - 80 and fz.size > 16:
+            fz = font(FONT_BOLD, fz.size - 1)
+        lw = d.textlength(line, font=fz)
+        d.rounded_rectangle([W / 2 - lw / 2 - 22, y - 8, W / 2 + lw / 2 + 22, y + 40], radius=22,
+                            fill=(214, 41, 118, 230))
+        d.text((W / 2 - lw / 2, y), line, font=fz, fill=(255, 255, 255, 255))
+    return im
+
 
 
 def highlight_tokens(text):
@@ -794,8 +1145,57 @@ class SupporterAssets:
 # ----------------------------------------------------------------------------
 # Scena
 # ----------------------------------------------------------------------------
-def scene_job(args):
-    i, scene, ep, ep_dir, tmp, dur, v0, events, history, preview = args
+def clean_narration(text):
+    return text.replace("*", "")
+
+
+def word_times(narr, voice, offset, dur):
+    """Tempi di ogni parola: distribuiti sulla parte parlata dell'audio, in base alla lunghezza."""
+    toks = narr.split()
+    if not toks:
+        return []
+    if voice is not None and len(voice):
+        env = np.abs(voice)
+        win = int(SR * 0.02)
+        n = len(env) // win
+        e = env[: n * win].reshape(n, win).max(axis=1) if n else np.array([1.0])
+        thr = max(0.02, e.max() * 0.06)
+        on = np.where(e > thr)[0]
+        s0 = (on[0] * win / SR) if len(on) else 0.0
+        s1 = ((on[-1] + 1) * win / SR) if len(on) else len(voice) / SR
+    else:
+        s0, s1 = 0.0, max(0.5, dur - offset - 0.3)
+    weights = []
+    for tk in toks:
+        c = tk.strip("*")
+        wgt = len(c.strip(".,!?;:\"'")) + 2.0
+        weights.append(wgt)
+    pauses = [4.0 if tk.rstrip("*")[-1:] in ".!?" else (2.2 if tk.rstrip("*")[-1:] in ",;:" else 0.0)
+              for tk in toks]
+    total = sum(weights) + sum(pauses[:-1])
+    out, acc = [], 0.0
+    for j, tk in enumerate(toks):
+        st = offset + s0 + (s1 - s0) * acc / total
+        acc += weights[j]
+        en_speech = offset + s0 + (s1 - s0) * acc / total
+        acc += pauses[j] if j < len(toks) - 1 else 0
+        hl = False
+        raw = tk
+        if raw.startswith("*") or raw.endswith("*") or raw.rstrip(".,!?;:").endswith("*"):
+            hl = True
+        word = raw.replace("*", "").upper()
+        if "$" in word or any(ch.isdigit() for ch in word):
+            hl = "money"
+        out.append([st, en_speech, word, hl])
+    for j in range(len(out) - 1):
+        out[j][1] = out[j + 1][0]
+    out[-1][1] = max(out[-1][1] + 0.35, min(dur - 0.05, out[-1][1] + 1.2))
+    return out
+
+
+def scene_job(job):
+    i, scene, ep, ep_dir, tmp = job["i"], job["scene"], job["ep"], job["ep_dir"], job["tmp"]
+    dur, v0, events, history, preview = job["dur"], job["v0"], job["events"], job["history"], job["preview"]
     src = cv2.cvtColor(cv2.imread(os.path.join(ep_dir, scene["image"])), cv2.COLOR_BGR2RGB)
     ih, iw = src.shape[:2]
     k = max(W / iw, H / ih)
@@ -805,6 +1205,7 @@ def scene_job(args):
     skins = [np.array(e[4], np.float32) if len(e) > 4 else lid_color(src, e) for e in eyes]
     eyes = [e[:4] for e in eyes]
     blinks = anim.get("blink_times", [0.9 + 3.1 * j + (0.4 if j % 2 else 0) for j in range(6)])
+    blinks = [b - job.get("anim_offset", 0.0) for b in blinks] if job.get("anim_offset") else blinks
     cam = scene.get("camera", {})
     z0, z1 = cam.get("zoom", [1.06, 1.14] if i % 2 == 0 else [1.14, 1.07])
     fx, fy = cam.get("focus", [0.5, 0.5])
@@ -813,17 +1214,24 @@ def scene_job(args):
     blur = scene.get("blur", 0)
     sup = scene.get("supporters")
     sup_assets = SupporterAssets(sup) if sup else None
+    words_mode = ep.get("caption_mode") == "words"
 
     hud = Hud(ep, history)
     fxs = Fx(anim.get("fx"), seed=i * 17 + 3, src_point=anim.get("fx_point"))
     cap = scene.get("caption", "")
     cta = scene.get("cta")
-    cap_im = caption_sprite(cap) if cap and not cta and not sup else None
+    cap_im = caption_sprite(cap) if cap and not cta and not sup and not words_mode else None
     cap_pos = scene.get("caption_position", "bottom")
     glows = anim.get("glow", [])
     glow_sprites = [soft_circle(g[2], tuple(g[3]) + (255,), g[2] * 0.45) for g in glows]
+    overlays = Overlays(scene.get("overlays"), dur)
+    words = job.get("words") or []
+    word_cache = {}
+    word_y = 1500 if cta else 1430
+    timer = job.get("timer")
+    stats = job.get("stats") or {}
+    t_anim0 = job.get("anim_offset", 0.0)
 
-    # griglia a bassa risoluzione per le deformazioni
     gs = 4
     gu, gv = np.meshgrid(np.arange(0, W + gs, gs, dtype=np.float32), np.arange(0, H + gs, gs, dtype=np.float32))
     nframes = int(round(dur * FPS))
@@ -839,25 +1247,26 @@ def scene_job(args):
         cy = min(max(cy, hh), ih - hh)
         return scale, cx, cy
 
-    out_path = os.path.join(tmp, f"s{i:02d}.tmp.mp4")
+    out_path = os.path.join(tmp, f"s{i:03d}.tmp.mp4")
     proc = None
     if not preview:
         proc = subprocess.Popen(
             ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
+             "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
              "-pix_fmt", "yuv420p", "-r", str(FPS), out_path], stdin=subprocess.PIPE)
     frames_to_do = range(nframes) if not preview else [min(int(pt * FPS), nframes - 1) for pt in preview]
+    last = ep["_nscenes"] - 1
 
     for f in frames_to_do:
         t = f / FPS
+        ta = t + t_anim0  # tempo dell'animazione del personaggio (continua tra inquadrature uguali)
         scale, cx, cy = camera(t)
-        # mappa uscita -> immagine
         X = cx + (gu - W / 2) / scale
         Y = cy + (gv - H / 2) / scale
         DX = np.zeros_like(X)
         DY = np.zeros_like(Y)
         for m in movers:
-            dx, dy = mover_disp(m, X, Y, t)
+            dx, dy = mover_disp(m, X, Y, ta)
             DX += dx
             DY += dy
         mx = cv2.resize(X - DX, (W, H), interpolation=cv2.INTER_LINEAR)
@@ -878,18 +1287,15 @@ def scene_job(args):
             return (x - cx) * scale + W / 2, (y - cy) * scale + H / 2
 
         ov = hud.static.copy()
-        # bagliori pulsanti (luci, sole)
         for g, sp in zip(glows, glow_sprites):
-            a = g[4] * (0.65 + 0.35 * math.sin(2 * math.pi * t / g[5]))
-            spa = sp.copy()
-            arr = np.array(spa)
+            a = g[4] * (0.65 + 0.35 * math.sin(2 * math.pi * ta / g[5]))
+            arr = np.array(sp)
             arr[..., 3] = (arr[..., 3] * a).astype(np.uint8)
             ox, oy = to_out(g[0], g[1])
             layer = Image.fromarray(arr)
             ov.alpha_composite(layer, (int(ox - layer.width / 2), int(oy - layer.height / 2)))
-        fxs.draw(ov, t, to_out)
+        fxs.draw(ov, ta, to_out)
 
-        # soldi
         value = v0
         bump, glow = 0.0, 0.0
         for ev in events:
@@ -899,13 +1305,17 @@ def scene_job(args):
                 x = t - arr_t
                 bump = max(bump, math.exp(-x * 9) * math.sin(min(x * 14, math.pi)) if x < 0.5 else 0)
                 glow = max(glow, max(0, 1 - x / 0.8))
-        hud.draw(ov, value, bump, glow)
+        tmr = (timer[0], timer[1] - t, timer[2]) if timer else None
+        flash = max(0.0, 1 - t / 0.9) if stats.get("_changed") else 0.0
+        hud.draw(ov, value, bump, glow, stats=stats, stat_flash=flash, timer=tmr,
+                 show_strip=job.get("show_strip", False))
         tx, ty = hud.counter_center
+        pop_y = hud.content_top + 10
         for ev in events:
-            # moneta che vola dal punto della scena al contatore
             x = (t - ev["t"]) / ev["fly"]
-            if 0 <= x <= 1 and ev.get("from"):
-                sx, sy = to_out(*ev["from"])
+            src_pt = ev.get("from") or ([iw * 0.5, ih * 0.62] if ev["amount"] > 0 else None)
+            if 0 <= x <= 1 and src_pt and ev["fly"] > 0.05:
+                sx, sy = to_out(*src_pt)
                 e = ease_in_out(x)
                 px = sx + (tx - sx) * e
                 py = sy + (ty - sy) * e - math.sin(math.pi * e) * 160
@@ -913,27 +1323,29 @@ def scene_job(args):
                 s = 1.0 - 0.35 * e
                 sp = cs.resize((int(cs.width * s), int(cs.height * s)), Image.LANCZOS)
                 ov.alpha_composite(sp, (int(px - sp.width / 2), int(py - sp.height / 2)))
-            # "+$X" che sale dal contatore
             y = t - ev["t"] - ev["fly"]
-            if 0 <= y <= 1.1:
-                a = min(1, y * 6) * (1 - max(0, (y - 0.7) / 0.4))
+            if 0 <= y <= 1.3:
+                a = min(1, y * 6) * (1 - max(0, (y - 0.9) / 0.4))
                 txt = ("+" if ev["amount"] >= 0 else "-") + money(abs(ev["amount"]))
                 if ev.get("label"):
                     txt += "  " + ev["label"]
-                fpl = font(FONT_BLACK, 56 if abs(ev["amount"]) < 10 else 66)
-                pcol = GREEN if ev["amount"] >= 0 else (255, 80, 80)
+                fpl = font(FONT_BLACK, 52 if abs(ev["amount"]) < 10 else 60)
+                pcol = GREEN if ev["amount"] >= 0 else (255, 72, 72)
                 dd = ImageDraw.Draw(ov)
                 tw = dd.textlength(txt, font=fpl)
-                yy = Hud.POP_Y + 20 - 50 * ease_out(y)
-                lay = Image.new("RGBA", (int(tw) + 40, 100), (0, 0, 0, 0))
+                lay = Image.new("RGBA", (int(tw) + 40, 96), (0, 0, 0, 0))
                 ImageDraw.Draw(lay).text((20, 10), txt, font=fpl, fill=pcol + (255,), stroke_width=7,
                                          stroke_fill=(0, 0, 0, 255))
                 la = np.array(lay)
                 la[..., 3] = (la[..., 3] * a).astype(np.uint8)
                 px0 = min(max(tx - lay.width / 2, 20), W - 20 - lay.width)
-                ov.alpha_composite(Image.fromarray(la), (int(px0), int(yy)))
+                ov.alpha_composite(Image.fromarray(la), (int(px0), int(pop_y + 30 - 40 * ease_out(y))))
+                pop_y += 0  # una per volta di solito
 
-        # didascalia animata
+        if not cta and not sup:
+            overlays.draw(ov, t, hud.content_top + (90 if any(
+                0 <= t - ev["t"] - ev["fly"] <= 1.3 for ev in events) else 0))
+
         if cap_im is not None:
             x = (t - 0.25) / 0.35
             if x > 0:
@@ -941,30 +1353,49 @@ def scene_job(args):
                 a = min(1, x * 2.5)
                 sp = cap_im if abs(s - 1) < 1e-3 else cap_im.resize(
                     (max(1, int(cap_im.width * s)), max(1, int(cap_im.height * s))), Image.BICUBIC)
-                if a < 1:
-                    arr = np.array(sp)
-                    arr[..., 3] = (arr[..., 3] * a).astype(np.uint8)
-                    sp = Image.fromarray(arr)
+                sp = _fade(sp, a)
                 cyc = {"top": 640, "middle": H // 2}.get(cap_pos, H - 560)
                 ov.alpha_composite(sp, (int((W - sp.width) / 2), int(cyc - sp.height / 2)))
         if sup_assets:
             sup_assets.draw(ov, t, scene.get("supporters_title", "TOP SUPPORTERS"),
                             scene.get("supporters_note", "TAG YOUR FRIENDS TO BE HERE NEXT TIME"))
         if cta:
-            x = (t - 0.15) / 0.4
+            x = (t - 0.1) / 0.35
             if x > 0:
-                sp = cta_sprite(cta.get("title", "What's next?"), cta.get("options", ["A", "B"]), t)
-                s = 0.7 + 0.3 * ease_back(x)
-                sp = sp.resize((int(W * s), int(sp.height * s)), Image.BICUBIC)
-                ov.alpha_composite(sp, (int((W - sp.width) / 2), int(H * 0.56 - sp.height / 2)))
+                if words_mode:
+                    sp = cta_full(cta, t, ep)
+                    ov.alpha_composite(_fade(sp, min(1, x)))
+                else:
+                    sp = cta_sprite(cta.get("title", "What's next?"),
+                                    [o["label"] if isinstance(o, dict) else o for o in cta.get("options", [])], t)
+                    s = 0.7 + 0.3 * ease_back(x)
+                    sp = sp.resize((int(W * s), int(sp.height * s)), Image.BICUBIC)
+                    ov.alpha_composite(sp, (int((W - sp.width) / 2), int(H * 0.56 - sp.height / 2)))
+
+        for w0, w1, wd, hl in words:
+            if w0 <= t < w1:
+                key = (wd, hl)
+                if key not in word_cache:
+                    word_cache[key] = word_sprite(wd, hl)
+                sp = word_cache[key]
+                s = 1.16 - 0.16 * ease_out((t - w0) / 0.12)
+                if s > 1.001:
+                    sp = sp.resize((int(sp.width * s), int(sp.height * s)), Image.BICUBIC)
+                ov.alpha_composite(sp, (int(W / 2 - sp.width / 2), int(word_y - sp.height / 2)))
+                break
 
         o = np.asarray(ov)
         a = o[..., 3:4].astype(np.float32) / 255.0
         frame = (frame.astype(np.float32) * (1 - a) + o[..., :3].astype(np.float32) * a)
-        # dissolvenza in apertura/chiusura
-        fade = min(1.0, t / 0.18, (dur - t) / 0.12 if i == ep["_nscenes"] - 1 else 1.0)
+        fade = 1.0
+        if i == 0:
+            fade = min(fade, t / 0.2)
+        if i == last:
+            fade = min(fade, (dur - t) / 0.2)
+        if not words_mode:
+            fade = min(1.0, t / 0.18, (dur - t) / 0.12 if i == last else 1.0)
         if fade < 1:
-            frame *= fade
+            frame *= max(0.0, fade)
         frame = frame.astype(np.uint8)
         if preview:
             Image.fromarray(frame).save(os.path.join(tmp, f"preview_s{i + 1}_{t:.2f}.png"))
@@ -974,9 +1405,9 @@ def scene_job(args):
         proc.stdin.close()
         if proc.wait() != 0:
             raise SystemExit(f"ffmpeg fallito nella scena {i + 1}")
-        final = os.path.join(tmp, f"s{i:02d}.mp4")
+        final = os.path.join(tmp, f"s{i:03d}.mp4")
         os.replace(out_path, final)
-        print(f"  scena {i + 1}: {scene['image']} ({dur:.1f}s)", flush=True)
+        print(f"  scena {i + 1}/{last + 1}: {scene['image']} ({dur:.1f}s)", flush=True)
         return final
     return None
 
@@ -1017,13 +1448,14 @@ def render_episode(ep_dir, preview=None):
         voices, durs = [], []
         for i, s in enumerate(ep["scenes"]):
             v = None
+            narr = clean_narration(s.get("narration", ""))
             if not preview:
-                v = make_voice(s.get("narration", ""), ep, os.path.join(tmp, f"v{i}"), ep_dir, i)
-            d = float(s.get("duration", 3.5))
+                v = make_voice(narr, ep, os.path.join(tmp, f"v{i}"), ep_dir, i)
+            d = float(s.get("duration", 1.2 if ep.get("caption_mode") == "words" else 3.5))
             if v is not None:
                 d = max(d, len(v) / SR + ep.get("voice_delay", 0.2) + ep.get("scene_pad", 0.5))
-            elif preview and s.get("narration"):
-                d = max(d, len(s["narration"].split()) * 0.36 + 0.9)
+            elif preview and narr:
+                d = max(d, len(narr.split()) * 0.36 + 0.5)
             voices.append(v)
             durs.append(round(d * FPS) / FPS)
 
@@ -1051,6 +1483,44 @@ def render_episode(ep_dir, preview=None):
             all_events.append(evs)
             v += sum(e["amount"] for e in evs)
 
+        # 3) parole, timer, casa/lavoro, continuita' dell'animazione
+        words_mode = ep.get("caption_mode") == "words"
+        vd = ep.get("voice_delay", 0.2)
+        timer_state = None
+        stats_state = dict(ep.get("stats", {}))
+        prev_img, anim_off = None, 0.0
+        extra = []
+        for i, s in enumerate(ep["scenes"]):
+            tc = s.get("timer")
+            if tc == "hide":
+                timer_state = None
+            elif isinstance(tc, dict):
+                if "set" in tc:
+                    timer_state = [tc.get("label", timer_state[0] if timer_state else "TIME LEFT"),
+                                   float(tc["set"]), bool(tc.get("red", False))]
+                elif timer_state:
+                    timer_state[1] -= float(tc.get("jump", 0))
+                    if "red" in tc:
+                        timer_state[2] = bool(tc["red"])
+                    if "label" in tc:
+                        timer_state[0] = tc["label"]
+            changed = []
+            for kx, vx in (s.get("stats") or {}).items():
+                if stats_state.get(kx) != vx:
+                    changed.append(kx)
+                stats_state[kx] = vx
+            st = dict(stats_state, _changed=changed)
+            anim_off = anim_off + durs[i - 1] if (i and s["image"] == prev_img) else 0.0
+            prev_img = s["image"]
+            extra.append({
+                "words": word_times(s.get("narration", ""), voices[i], vd, durs[i]) if words_mode else [],
+                "timer": tuple(timer_state) if timer_state else None,
+                "stats": st, "anim_offset": anim_off,
+                "show_strip": bool(s.get("show_episodes", i == 0 or s.get("cta"))),
+            })
+            if timer_state:
+                timer_state[1] -= durs[i]
+
         jobs = []
         for i, s in enumerate(ep["scenes"]):
             pv = None
@@ -1058,7 +1528,8 @@ def render_episode(ep_dir, preview=None):
                 pv = [pt for (si, pt) in preview if si == i + 1]
                 if not pv:
                     continue
-            jobs.append((i, s, ep, ep_dir, tmp, durs[i], values[i], all_events[i], history, pv))
+            jobs.append(dict(i=i, scene=s, ep=ep, ep_dir=ep_dir, tmp=tmp, dur=durs[i], v0=values[i],
+                             events=all_events[i], history=history, preview=pv, **extra[i]))
 
         with Pool(min(2, os.cpu_count() or 1)) as pool:
             parts = pool.map(scene_job, jobs, chunksize=1)
@@ -1073,7 +1544,7 @@ def render_episode(ep_dir, preview=None):
         # 3) colonna sonora unica
         total = sum(durs)
         audio = np.zeros(int(total * SR) + SR, np.float32)
-        coin, cash, whoosh = sfx_coin(), sfx_cash(), sfx_whoosh()
+        coin, cash, whoosh, pop, ding = sfx_coin(), sfx_cash(), sfx_whoosh(), sfx_pop(), sfx_ding()
 
         def add(clip, at, gain=1.0):
             s0 = int(at * SR)
@@ -1082,8 +1553,14 @@ def render_episode(ep_dir, preview=None):
 
         off = 0.0
         for i, d in enumerate(durs):
-            if i > 0:
+            sc = ep["scenes"][i]
+            if i > 0 and (not words_mode or sc.get("sfx") == "whoosh" or sc.get("cta")):
                 add(whoosh, max(off - 0.15, 0))
+            for o in sc.get("overlays") or []:
+                at = o.get("at", 0.0)
+                at = at * d if at <= 1 else at
+                if o.get("type") != "tag":
+                    add(ding if o.get("type") in ("dm", "comment", "say") else pop, off + at)
             if voices[i] is not None:
                 add(voices[i], off + ep.get("voice_delay", 0.2))
             for e in all_events[i]:
@@ -1114,7 +1591,9 @@ def render_episode(ep_dir, preview=None):
                     "-map", "0:v", "-map", "[a]"]
         else:
             cmd += ["-filter_complex", "[1:a]loudnorm=I=-15:TP=-1.5:LRA=11[a]", "-map", "0:v", "-map", "[a]"]
-        cmd += ["-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2", "-shortest",
+        # video finale sotto i 25 MB (limite del caricamento da browser su GitHub), qualita' adatta a Instagram
+        cmd += ["-c:v", "libx264", "-preset", "slow", "-b:v", "2700k", "-maxrate", "3200k", "-bufsize", "6000k",
+                "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2", "-shortest",
                 "-movflags", "+faststart", final_tmp]
         run(cmd)
         final = os.path.join(OUT_DIR, f"{name}.mp4")

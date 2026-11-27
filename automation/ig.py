@@ -1,4 +1,8 @@
-"""Instagram API (accesso con Instagram Login): follower, like, commenti, pubblicazione Reel."""
+"""Instagram API: follower, like, commenti, pubblicazione Reel.
+
+Funziona con il token del "login unificato" di Meta (graph.facebook.com + ID dell'account Instagram,
+token che non scade) e con il vecchio "login di Instagram" (graph.instagram.com, token da 60 giorni).
+"""
 import json
 import os
 import time
@@ -13,6 +17,18 @@ MOCK_DIR = os.path.join(ROOT, "automation", "mock")
 def _cfg():
     c = config()["instagram"]
     return c["api_host"].rstrip("/"), c["api_version"]
+
+
+def unified():
+    return "graph.facebook.com" in config()["instagram"]["api_host"]
+
+
+def ig_id():
+    """ID dell'account Instagram (serve con il login unificato)."""
+    v = os.environ.get("IG_USER_ID") or str(config()["instagram"].get("user_id") or "").strip()
+    if not v and unified() and not MOCK:
+        raise SystemExit("Manca l'ID dell'account Instagram: mettilo in config.json -> instagram -> user_id")
+    return v or "me"
 
 
 def token():
@@ -49,7 +65,7 @@ def _post(path, params):
 
 def refresh_token():
     """Rinnova il token (vale 60 giorni). Restituisce il nuovo token o None."""
-    if MOCK:
+    if MOCK or unified():  # il token di sistema del login unificato non scade
         return None
     host, _ = _cfg()
     r = requests.get(f"{host}/refresh_access_token",
@@ -63,6 +79,10 @@ def refresh_token():
 def me():
     if MOCK:
         return load_json(os.path.join(MOCK_DIR, "me.json"))
+    if unified():
+        d = _get(ig_id(), {"fields": "id,username,followers_count,media_count"})
+        d["user_id"] = d.get("id")
+        return d
     return _get("me", {"fields": "user_id,username,followers_count,media_count"})
 
 
@@ -75,7 +95,7 @@ def media_info(media_id):
 def latest_reel():
     if MOCK:
         return load_json(os.path.join(MOCK_DIR, "media.json"))
-    data = _get("me/media", {"fields": "id,media_product_type,timestamp,permalink", "limit": 10})
+    data = _get(f"{ig_id()}/media", {"fields": "id,media_product_type,timestamp,permalink", "limit": 10})
     for m in data.get("data", []):
         if m.get("media_product_type") == "REELS":
             return m

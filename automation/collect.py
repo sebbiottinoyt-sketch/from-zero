@@ -38,6 +38,7 @@ def score(comments, options, cfg, own):
         if len(hits) == 1:
             votes_by_user[u] = hits[0]
             rec["voted"] = True
+            c["_option"] = hits[0]
     votes = {o: 0 for o in options}
     for o in votes_by_user.values():
         votes[o] += 1
@@ -60,6 +61,24 @@ def score(comments, options, cfg, own):
                        "detail": detail})
     ranked.sort(key=lambda r: (-r["points"], -r["tags"], r["username"].lower()))
     return votes, ranked
+
+
+def comment_candidates(comments, winner, own, cfg, n=6):
+    """Commenti della squadra vincente, dal piu' votato: GPT scegliera' il primo adatto."""
+    own = own.lower()
+    blocked = {u.lower().lstrip("@") for u in cfg["rewards"].get("blocked_users", [])}
+    out = []
+    for c in comments:
+        u = (c.get("username") or "").lower()
+        if not u or u == own or u in blocked or c.get("_option") != winner:
+            continue
+        text = MENTION.sub("", c.get("text") or "").strip()
+        rest = re.sub(rf"(?<![A-Za-z0-9]){re.escape(winner)}(?![A-Za-z0-9])", "", text, flags=re.I)
+        if len(re.sub(r"[^A-Za-z0-9]", "", rest)) < 8:  # solo la parola del voto o tag: non e' un'idea
+            continue
+        out.append({"username": c.get("username"), "text": text[:280], "likes": int(c.get("like_count") or 0)})
+    out.sort(key=lambda x: (-x["likes"], len(x["text"])))
+    return out[:n]
 
 
 def collect(next_ep):
@@ -117,6 +136,14 @@ def collect(next_ep):
         tied = [o for o, v in votes.items() if v == best]
         winner = tied[0] if len(tied) == 1 else None  # pareggio: decide la storia
     top = ranked[: cfg["rewards"]["top_n"]]
+    total_votes = sum(votes.values())
+    percentages = {o: round(100 * v / total_votes) if total_votes else 0 for o, v in votes.items()}
+    candidates = comment_candidates(comms, winner, own, cfg) if winner else []
+    losers = [o for o in options if o != winner]
+    other_comments = []
+    for o in losers:
+        other_comments += comment_candidates(comms, o, own, cfg, n=3)
+    other_comments.sort(key=lambda x: -x["likes"])
 
     out = {
         "episode": next_ep,
@@ -128,7 +155,10 @@ def collect(next_ep):
         "net_worth_start": start_worth,
         "vote_options": options,
         "votes": votes,
+        "percentages": percentages,
         "winner": winner,
+        "comment_candidates": candidates,
+        "other_comments": other_comments[:3],
         "supporters": top,
         "ranking": ranked[:20],
     }

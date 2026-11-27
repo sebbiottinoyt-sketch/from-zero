@@ -204,18 +204,31 @@ def animate(n):
             img = cv2.cvtColor(cv2.imread(ip), cv2.COLOR_BGR2RGB)
             kx, ky = img.shape[1] / 1000.0, img.shape[0] / 1000.0
             ann = annotate(ip, model)
+            pts = {}
             if not ann or not ann["character_visible"]:
-                cache[name] = (generic_anim(img), None)
+                cache[name] = (generic_anim(img), None, pts)
+                if ann:
+                    pts["detail"] = (ann["coin_source"]["x"] / 1000, ann["coin_source"]["y"] / 1000)
             else:
                 eyes = eyes_for(img, ann, kx, ky)
                 if eyes and not qa_blink(img, eyes, model):
                     eyes = []
                 anim = build_anim(img, ann, kx, ky, eyes)
-                cache[name] = (anim, [int(ann["coin_source"]["x"] * kx), int(ann["coin_source"]["y"] * ky)])
+                h = ann["head"]
+                pts["closeup_face"] = (h["x"] / 1000, h["y"] / 1000)
+                pts["medium"] = (h["x"] / 1000, min(0.75, h["y"] / 1000 + 0.15))
+                if ann["hands"]:
+                    pts["closeup_hands"] = (ann["hands"][0]["x"] / 1000, ann["hands"][0]["y"] / 1000)
+                pts["detail"] = (ann["coin_source"]["x"] / 1000, ann["coin_source"]["y"] / 1000)
+                pts.setdefault("closeup_hands", pts["detail"])
+                cache[name] = (anim, [int(ann["coin_source"]["x"] * kx), int(ann["coin_source"]["y"] * ky)], pts)
             log(f"  animazione {name}: {len(cache[name][0]['movers'])} movimenti"
                 + (", battito di ciglia" if cache[name][0].get("blink") else ""))
-        anim, coin = cache[name]
+        anim, coin, pts = cache[name]
         s["anim"] = anim
+        fr = s.get("framing")
+        if fr and "focus" not in s.get("camera", {}):
+            s.setdefault("camera", {})["focus"] = list(pts.get(fr, (0.5, 0.45 if fr != "wide" else 0.5)))
         for m in s.get("money", []):
             if coin and "from" not in m:
                 m["from"] = coin

@@ -11,6 +11,23 @@ Ogni giorno GitHub fa tutto da solo:
 7. **Anima il ragazzo** (respiro, testa, mani, occhi che sbattono) e monta il video con voce, contatore e barra episodi.
 8. **Pubblica il Reel** (subito, oppure dopo il tuo OK).
 
+## Il formato delle puntate (stile "interactive series")
+
+- 22-28 inquadrature veloci (una frase ciascuna), parole a schermo una alla volta, con quelle chiave evidenziate.
+- Barra in alto: EP, CASH (contatore a rulli), HOME, JOB. Elenco episodi all'inizio e alla fine.
+- Apertura: risultato del voto con le percentuali e il **commento più votato della squadra vincente** (@nome, squadra, cuori):
+  la puntata segue la sua idea.
+- Riquadri (fatti, prezzi, obiettivi), messaggi che si scrivono da soli, avvisi rossi, timer con scadenza.
+- Archi narrativi di 3-5 puntate (un problema ciascuno). L'ultima è il FINALE: chiude con un richiamo alla prima
+  parte e dice "A NEW STORY STARTS TOMORROW". Soldi, casa e lavoro restano per sempre.
+- Anche il commento più votato della squadra perdente può comparire ("@nome · 40 likes").
+- Dialoghi con il nome di chi parla, messaggi inviati da Leo, etichette sui nuovi personaggi.
+- Bilancio vero: ogni spesa, scommessa o perdita scala i soldi e resta per le puntate dopo.
+- Finale: dilemma con due scelte e sottotitolo (il rischio di ognuna), "TOP FANS" e "TOMORROW 6PM · PART N".
+- Le regole di regia per GPT sono in `story/director.md`; personaggio e mondo in `story/bible.md`.
+- `config.json` -> `episode`: numero di inquadrature (`shots`), parole (`words`), immagini nuove massime
+  (`max_new_images`, le altre sono primi piani delle stesse) e scritta finale (`footer`).
+
 ## Punti dei fan (si cambiano in `config.json` → `rewards`)
 
 - 2 punti per ogni amico taggato nei commenti (contano al massimo 10 amici diversi a persona)
