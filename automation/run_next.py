@@ -40,8 +40,15 @@ def make():
         raise SystemExit(f"L'episodio {last['episode']} non risulta pubblicato: pubblicalo (workflow "
                          "'Pubblica episodio') prima di crearne uno nuovo.")
     gap = config().get("min_hours_between_episodes", 20)
-    if last.get("published_at") and not MOCK:
-        age = (datetime.now(timezone.utc) - datetime.fromisoformat(last["published_at"])).total_seconds() / 3600
+    published = last.get("published_at")
+    if not published and not MOCK:  # pubblicato a mano: l'ora la prende dal Reel su Instagram
+        import ig
+        lr = ig.latest_reel()
+        known = {e.get("media_id") for e in st["episodes"][:-1] if e.get("media_id")}
+        if lr and lr.get("timestamp") and lr["id"] not in known:
+            published = lr["timestamp"].replace("+0000", "+00:00")
+    if published and not MOCK:
+        age = (datetime.now(timezone.utc) - datetime.fromisoformat(published)).total_seconds() / 3600
         if age < gap:
             log(f"L'ultimo episodio è uscito {age:.0f} ore fa (minimo {gap}): aspetto ancora.")
             return None
