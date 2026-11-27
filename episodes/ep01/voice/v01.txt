@@ -1,1 +1,1 @@
-["Tonight a stranger offered me five hundred dollars.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
+["Tonight a stranger offered me five hundred dollars.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.06:formant=preserved"]

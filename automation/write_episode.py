@@ -125,8 +125,29 @@ at most {e['max_new_images']} new pictures (reuse_shot for the others). Shot 0 m
 Money events: "at" is 0.2-0.9 (moment inside the shot). Overlays "at" 0.0-0.5.
 instagram_caption: hook line, CASH now, the rules (follower = ${cfg['money']['per_follower']}, like = ${cfg['money']['per_like']}),
 the question with the two options, "The most liked comment decides Part {n + 1}",
-"Tag your friends: the top fans appear in the next episode", 4-6 hashtags incl. #fromzero.
+"Tag your friends: the top fans appear in the next episode", 4-6 hashtags incl. #fromzero (hashtags on the
+last line). Do NOT list the fans: the top fans section is added automatically.
 """
+
+
+def fans_section(caption, fans, prev_ep):
+    """Aggiunge alla descrizione la classifica dei fan della puntata precedente, con i tag."""
+    if not fans:
+        return caption[:2200]
+    medals = ["🥇", "🥈", "🥉", "4.", "5."]
+    lines = [f"🏆 TOP FANS · EPISODE {prev_ep}"]
+    for i, f in enumerate(fans[:5]):
+        lines.append(f"{medals[i]} @{f['username'].lstrip('@')} · {f.get('detail', '')}".rstrip(" ·"))
+    block = "\n".join(lines)
+    # la sezione va prima degli hashtag, se ci sono
+    parts = caption.rsplit("\n\n", 1)
+    if len(parts) == 2 and parts[1].lstrip().startswith("#"):
+        out = parts[0] + "\n\n" + block + "\n\n" + parts[1]
+    else:
+        out = caption + "\n\n" + block
+    if len(out) > 2200:  # limite di Instagram
+        out = out[:2200]
+    return out
 
 
 def build_episode(n, cfg, st, col, script):
@@ -233,12 +254,15 @@ def build_episode(n, cfg, st, col, script):
         "image": scenes[-1]["image"], "darken": 0.45, "blur": 3, "duration": 5.0, "timer": "hide",
         "narration": script["vote"]["narration"].strip(), "camera": {"zoom": [1.05, 1.1]},
         "cta": {"title": script["vote"]["question"].upper()[:26], "options": opts, "fans": fans,
-                "footer": footer.format(next=n + 1), "finale": finale},
+                "footer": footer.format(next=n + 1), "finale": finale,
+                "fans_note": cfg["episode"].get("fans_note", "tag friends in the comments → top fans in part {next}")
+                .format(next=n + 2 if finale else n + 1)},
     })
+    caption = fans_section(script["instagram_caption"].strip(), col.get("supporters") or [], n - 1)
     ep = {"episode": n, "day_label": script["day_label"].upper()[:10], "title": script["title"],
           **cfg["voice"], "caption_mode": "words", "net_worth": col["net_worth_start"],
           "stats": prev.get("stats") or {"home": "NO", "job": "NO"}, "scenes": scenes,
-          "instagram_caption": script["instagram_caption"],
+          "instagram_caption": caption,
           "new_look": (script.get("new_look") or "").strip()[:400],
           "arc": {"title": script.get("arc_title", "")[:40], "part": max(1, int(script.get("arc_part", 1))),
                   "finale": finale}}

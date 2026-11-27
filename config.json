@@ -12,7 +12,7 @@
     "image_quality": "medium",
     "image_size": "1024x1536"
   },
-  "auto_publish": false,
+  "auto_publish": true,
   "ai_label": true,
   "money": {
     "per_follower": 10,
@@ -38,7 +38,7 @@
     "shots": 24,
     "words": 185,
     "max_new_images": 20,
-    "footer": "TOMORROW 6PM · PART {next}",
+    "footer": "TOMORROW · PART {next}",
     "arc_min": 3,
     "arc_max": 5,
     "finale_footer": "A NEW STORY STARTS TOMORROW"
@@ -52,7 +52,7 @@
     "tts": "kokoro",
     "kokoro_voice": "am_fenrir",
     "kokoro_speed": 1.08,
-    "voice_fx": "rubberband=pitch=1.13:formant=shifted",
+    "voice_fx": "rubberband=pitch=1.06:formant=preserved",
     "voice_delay": 0.08,
     "scene_pad": 0.22
   },

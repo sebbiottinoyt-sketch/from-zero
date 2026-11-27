@@ -11,7 +11,15 @@ import requests
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import config  # noqa: E402
 
-TOKEN = os.environ.get("IG_TOKEN", "")
+import re
+
+TOKEN = re.sub(r"\s+", "", os.environ.get("IG_TOKEN", ""))
+TOKEN_RE = re.compile(r"(EAA|IG)[A-Za-z0-9_\-]{10,}")
+
+
+def hide(text):
+    """Non mostrare mai il token nei log (il repository e' pubblico)."""
+    return TOKEN_RE.sub("[TOKEN NASCOSTO]", str(text))
 cfg = config()["instagram"]
 VER = cfg.get("api_version", "v26.0")
 USER_ID = str(cfg.get("user_id") or "").strip()
@@ -29,14 +37,19 @@ def get(host, path, **params):
 def short(d):
     if isinstance(d, dict) and "error" in d:
         e = d["error"]
-        return e.get("message", str(e))[:160] if isinstance(e, dict) else str(e)[:160]
-    return str(d)[:300]
+        return hide(e.get("message", str(e))[:160] if isinstance(e, dict) else str(e)[:160])
+    return hide(str(d)[:300])
 
 
 print("=== PROVA COLLEGAMENTO INSTAGRAM ===")
 if not TOKEN:
     sys.exit("IG_TOKEN mancante: aggiungilo in Settings -> Secrets and variables -> Actions")
-print(f"Token presente ({len(TOKEN)} caratteri). user_id in config.json: {USER_ID or '(vuoto)'}\n")
+print(f"Token presente ({len(TOKEN)} caratteri). user_id in config.json: {USER_ID or '(vuoto)'}")
+if not re.fullmatch(r"[A-Za-z0-9]+", TOKEN):
+    bad = sorted({c for c in TOKEN if not c.isalnum()})
+    print(f"ATTENZIONE: il token contiene caratteri non validi {bad}: e' stato copiato male "
+          "(usa il pulsante Copia accanto al token, non la selezione del testo)")
+print()
 
 found = []
 FB, IG = "https://graph.facebook.com", "https://graph.instagram.com"

@@ -14,6 +14,12 @@ from common import MOCK, ROOT, config, load_json, log
 MOCK_DIR = os.path.join(ROOT, "automation", "mock")
 
 
+def hide(text):
+    """Non mostrare mai il token nei log (il repository e' pubblico)."""
+    import re
+    return re.sub(r"(EAA|IG)[A-Za-z0-9_\-]{10,}", "[TOKEN NASCOSTO]", str(text))
+
+
 def _cfg():
     c = config()["instagram"]
     return c["api_host"].rstrip("/"), c["api_version"]
@@ -32,7 +38,7 @@ def ig_id():
 
 
 def token():
-    t = os.environ.get("IG_TOKEN")
+    t = "".join((os.environ.get("IG_TOKEN") or "").split())
     if not t and not MOCK:
         raise SystemExit("Manca IG_TOKEN (secret di GitHub)")
     return t
@@ -49,7 +55,7 @@ def _get(path, params=None):
             break
         time.sleep(4 * (a + 1))
     if r.status_code >= 400:
-        raise SystemExit(f"Instagram errore {r.status_code} su {path}: {r.text[:600]}")
+        raise SystemExit(f"Instagram errore {r.status_code} su {path}: {hide(r.text[:600])}")
     return r.json()
 
 
@@ -59,7 +65,7 @@ def _post(path, params):
     p["access_token"] = token()
     r = requests.post(f"{host}/{ver}/{path.lstrip('/')}", data=p, timeout=120)
     if r.status_code >= 400:
-        raise RuntimeError(f"Instagram errore {r.status_code} su {path}: {r.text[:600]}")
+        raise RuntimeError(f"Instagram errore {r.status_code} su {path}: {hide(r.text[:600])}")
     return r.json()
 
 

@@ -1,1 +1,1 @@
-["But twenty phones... with no questions?", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
+["But twenty phones... with no questions?", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.06:formant=preserved"]

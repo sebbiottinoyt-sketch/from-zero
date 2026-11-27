@@ -906,6 +906,17 @@ def cta_full(cta, t, ep):
     d.text((W / 2 - d.textlength(foot, font=ff) / 2, y), foot, font=ff, fill=(255, 205, 60, 255), stroke_width=5,
            stroke_fill=(0, 0, 0, 255))
     fans = cta.get("fans") or []
+    note = cta.get("fans_note", "")
+    if note:
+        y += 52
+        fz = font(FONT_BLACK, 28)
+        nt = note.upper()
+        while d.textlength(nt, font=fz) > W - 100 and fz.size > 16:
+            fz = font(FONT_BLACK, fz.size - 1)
+        lw = d.textlength(nt, font=fz)
+        d.rounded_rectangle([W / 2 - lw / 2 - 24, y - 10, W / 2 + lw / 2 + 24, y + 44], radius=24,
+                            fill=(214, 41, 118, 235))
+        d.text((W / 2 - lw / 2, y), nt, font=fz, fill=(255, 255, 255, 255))
     if fans:
         y += 52
         line = "TOP FANS: " + "  ·  ".join("@" + f.lstrip("@") for f in fans[:3])

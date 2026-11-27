@@ -1,1 +1,1 @@
-["Just a bag, a broken phone... and her photo.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
+["Just a bag, a broken phone... and her photo.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.06:formant=preserved"]

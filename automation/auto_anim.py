@@ -144,7 +144,21 @@ def build_anim(img, ann, kx, ky, eyes):
     movers = []
     t = ann["torso"]
     movers.append({"c": P(t), "r": [int(max(80, t["width"] * k * 0.6)), int(max(80, t["height"] * k * 0.6))],
-                   "dy": round(-3.2 * s, 1), "period": 3.6})
+                   "dy": round(-2.5 * s, 1), "period": 3.6})
+    anim = {"movers": movers}
+    if eyes:
+        anim["blink"] = eyes
+    if ann["fx"] != "none":
+        anim["fx"] = [ann["fx"]]
+        anim["fx_point"] = P(ann["fx_point"])
+    cols = {"warm": [255, 170, 60], "cool": [170, 220, 255], "red": [255, 40, 30]}
+    glows = []
+    for L in ann["lights"][:2]:
+        glows.append([int(L["x"] * kx), int(L["y"] * ky), int(max(60, L["size"] * k * 0.8)), cols[L["color"]],
+                      0.45, 2.0 + len(glows) * 0.6])
+    if glows:
+        anim["glow"] = glows
+    return anim  # testa e mani non si muovono piu' (deformavano viso e mani)
     h = ann["head"]
     hr = int(max(60, h["size"] * k * 0.75))
     movers.append({"c": P(h), "r": [hr, int(hr * 1.1)], "pivot": P(ann["neck"]), "rot": 1.0, "dy": round(-1.5 * s, 1),

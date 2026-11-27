@@ -51,12 +51,12 @@ def score(comments, options, cfg, own):
                + min(r["likes"] * rw["points_per_comment_like"], rw["max_comment_like_points"]))
         if pts <= 0:
             continue
+        bits = []
         if n_tags:
-            detail = f"{n_tags} friend{'s' if n_tags != 1 else ''} tagged"
-        elif r["likes"]:
-            detail = f"{r['likes']} likes on comment"
-        else:
-            detail = "voted"
+            bits.append(f"{n_tags} friend{'s' if n_tags != 1 else ''} tagged")
+        if r["likes"]:
+            bits.append(f"{r['likes']} ♥")
+        detail = " · ".join(bits) or "voted"
         ranked.append({"username": r["username"], "points": pts, "tags": n_tags, "comment_likes": r["likes"],
                        "detail": detail})
     ranked.sort(key=lambda r: (-r["points"], -r["tags"], r["username"].lower()))

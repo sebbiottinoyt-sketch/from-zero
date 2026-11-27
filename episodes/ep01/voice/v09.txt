@@ -1,1 +1,1 @@
-["And you decide every choice I make.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.13:formant=shifted"]
+["And you decide every choice I make.", "kokoro", "am_fenrir", 1.08, "en-US-AndrewNeural", "-5%", "rubberband=pitch=1.06:formant=preserved"]
